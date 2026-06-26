@@ -34,6 +34,38 @@ test.describe('US-3 — Список свидетельств', () => {
       }
     })
 
+    await test.step('When: пользователь выбирает фильтр "summarized"', async () => {
+      await page.getByRole('tab', { name: /^summarized$/i }).click()
+    })
+
+    await test.step('Then: URL содержит ?status=summarized', async () => {
+      await expect(page).toHaveURL(/status=summarized/)
+    })
+
+    await test.step('And: в таблице только свидетельства со статусом "summarized"', async () => {
+      const statusCells = page.getByTestId('cell-status')
+      const count = await statusCells.count()
+      for (let i = 0; i < count; i++) {
+        await expect(statusCells.nth(i)).toHaveText('summarized')
+      }
+    })
+
+    await test.step('When: пользователь выбирает фильтр "published"', async () => {
+      await page.getByRole('tab', { name: /^published$/i }).click()
+    })
+
+    await test.step('Then: URL содержит ?status=published', async () => {
+      await expect(page).toHaveURL(/status=published/)
+    })
+
+    await test.step('And: в таблице только свидетельства со статусом "published"', async () => {
+      const statusCells = page.getByTestId('cell-status')
+      const count = await statusCells.count()
+      for (let i = 0; i < count; i++) {
+        await expect(statusCells.nth(i)).toHaveText('published')
+      }
+    })
+
     await test.step('And: доступны фильтры all, new, summarized, published', async () => {
       for (const label of ['all', 'new', 'summarized', 'published']) {
         await expect(page.getByRole('tab', { name: new RegExp(`^${label}$`, 'i') })).toBeVisible()

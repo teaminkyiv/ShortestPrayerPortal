@@ -64,6 +64,11 @@ test.describe('US-1 — Вход в систему', () => {
     await test.step('And: поле пароля не очищается', async () => {
       await expect(page.getByRole('textbox', { name: /пароль/i })).toHaveValue('wrong-password')
     })
+
+    await test.step('And: сообщение об ошибке не уточняет что именно неверно', async () => {
+      const errorText = await page.getByText(/неверный пароль/i).innerText()
+      expect(errorText).not.toMatch(/пользователь|логин|email|имя|не найден|не существует/i)
+    })
   })
 
   // Scenario 1.3

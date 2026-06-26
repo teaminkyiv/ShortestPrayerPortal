@@ -96,7 +96,7 @@ test.describe('US-6 — Редактирование и публикация', (
   })
 
   // Scenario 6.3
-  test('6.3 — Pre-fill из AI summary', async ({ page }) => {
+  test('6.3 — Pre-fill из AI summary когда editedVersion = null', async ({ page }) => {
     await test.step('Given: свидетельство имеет ai_summary и editedVersion = null', async () => {
       // ID_FOR_PREFILL must be seeded with ai_summary set and edited_version NULL
       await page.goto(`/admin/testimonies/${ID_FOR_PREFILL}`)
@@ -107,6 +107,23 @@ test.describe('US-6 — Редактирование и публикация', (
       const summaryText = await page.getByTestId('ai-summary-text').innerText()
       const textareaValue = await page.getByTestId('edited-version-textarea').inputValue()
       expect(textareaValue.trim()).toBe(summaryText.trim())
+    })
+  })
+
+  // Scenario 6.3 AC — если editedVersion уже заполнен вручную, показывается он, а не summary
+  test('6.3 AC — Если editedVersion уже заполнен, показывается он а не ai_summary', async ({ page }) => {
+    await test.step('Given: свидетельство имеет ai_summary и editedVersion уже заполнен', async () => {
+      // ID_FOR_DRAFT is seeded with ai_summary set and edited_version already populated
+      await page.goto(`/admin/testimonies/${ID_FOR_DRAFT}`)
+      await expect(page.getByTestId('meta-status')).not.toHaveText('published')
+    })
+
+    await test.step('Then: поле editedVersion содержит ранее сохранённый текст, а не ai_summary', async () => {
+      const summaryText = await page.getByTestId('ai-summary-text').innerText()
+      const textareaValue = await page.getByTestId('edited-version-textarea').inputValue()
+      // editedVersion must be non-empty and must differ from the raw ai_summary
+      expect(textareaValue.trim()).not.toBe('')
+      expect(textareaValue.trim()).not.toBe(summaryText.trim())
     })
   })
 
