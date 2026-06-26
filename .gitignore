@@ -20,3 +20,4 @@ dist/
 # IDE
 .idea/
 *.iml
+.superpowers/
