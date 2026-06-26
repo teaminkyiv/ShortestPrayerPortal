@@ -5,6 +5,7 @@ import { getTestimonyDetail } from '@/application/testimony/GetTestimonyDetailUs
 import { ChunksList } from '@/components/ChunksList'
 import { TestimonyMeta } from '@/components/TestimonyMeta'
 import { AiSummaryPanel } from '@/components/AiSummaryPanel'
+import { EditPublishPanel } from '@/components/EditPublishPanel'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -35,6 +36,15 @@ export default async function TestimonyDetailPage({ params }: Props) {
         initialSummary={review.aiSummary}
         initialStatus={review.status}
         initialSummarizedAt={review.summarizedAt?.toISOString() ?? null}
+      />
+
+      <EditPublishPanel
+        testimonyId={id}
+        initialEditedVersion={review.editedVersion}
+        initialAiSummary={review.aiSummary}
+        initialStatus={review.status}
+        initialPublishedAt={review.publishedAt?.toISOString() ?? null}
+        initialPublishedBy={review.publishedBy}
       />
 
       <h2 className="mb-2 text-lg font-semibold">Сообщения</h2>

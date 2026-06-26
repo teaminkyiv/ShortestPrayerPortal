@@ -1,0 +1,128 @@
+'use client'
+
+import { useState } from 'react'
+
+interface Props {
+  testimonyId:          string
+  initialEditedVersion: string | null
+  initialAiSummary:     string | null
+  initialStatus:        string
+  initialPublishedAt:   string | null
+  initialPublishedBy:   string | null
+}
+
+export function EditPublishPanel({
+  testimonyId,
+  initialEditedVersion,
+  initialAiSummary,
+  initialStatus,
+  initialPublishedAt,
+  initialPublishedBy,
+}: Props) {
+  const prefilled = initialEditedVersion ?? initialAiSummary ?? ''
+
+  const [text,        setText]        = useState(prefilled)
+  const [status,      setStatus]      = useState(initialStatus)
+  const [publishedAt, setPublishedAt] = useState(initialPublishedAt)
+  const [publishedBy, setPublishedBy] = useState(initialPublishedBy)
+  const [saving,      setSaving]      = useState(false)
+  const [publishing,  setPublishing]  = useState(false)
+  const [saved,       setSaved]       = useState(false)
+  const [error,       setError]       = useState<string | null>(null)
+
+  const isPublished = status === 'published'
+
+  async function handleSaveDraft() {
+    setSaving(true)
+    setSaved(false)
+    setError(null)
+
+    const res = await fetch(`/api/admin/testimonies/${testimonyId}/draft`, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ editedVersion: text }),
+    })
+
+    setSaving(false)
+    if (res.ok) {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } else {
+      setError('Не удалось сохранить черновик.')
+    }
+  }
+
+  async function handlePublish() {
+    setPublishing(true)
+    setError(null)
+
+    const res = await fetch(`/api/admin/testimonies/${testimonyId}/publish`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ editedVersion: text }),
+    })
+
+    if (!res.ok) {
+      setError('Не удалось опубликовать.')
+      setPublishing(false)
+      return
+    }
+
+    const data = await res.json()
+    setStatus(data.status)
+    setPublishedAt(data.publishedAt)
+    setPublishedBy(data.publishedBy)
+    setPublishing(false)
+  }
+
+  return (
+    <section className="mb-6">
+      <h2 className="mb-2 text-lg font-semibold">Финальная версия</h2>
+
+      {error && (
+        <div role="alert" className="mb-3 rounded bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <textarea
+        data-testid="edited-version-textarea"
+        value={text}
+        onChange={e => setText(e.target.value)}
+        disabled={isPublished}
+        rows={10}
+        className="w-full rounded border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        placeholder="Введите финальную версию свидетельства..."
+      />
+
+      {saved && (
+        <p className="mt-2 text-sm text-green-600">Сохранено</p>
+      )}
+
+      {isPublished ? (
+        <div className="mt-3 text-sm text-gray-500">
+          Опубликовано: <span data-testid="published-at">{publishedAt ? new Date(publishedAt).toLocaleString('ru-RU') : ''}</span>
+          {' '}редактором <span data-testid="published-by">{publishedBy}</span>
+        </div>
+      ) : (
+        <div className="mt-3 flex gap-3">
+          <button
+            onClick={handleSaveDraft}
+            disabled={saving || publishing}
+            className="rounded border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+          >
+            {saving ? 'Сохраняем...' : 'Save draft'}
+          </button>
+
+          <button
+            onClick={handlePublish}
+            disabled={!text.trim() || publishing || saving}
+            className="rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            {publishing ? 'Публикуем...' : 'Publish'}
+          </button>
+        </div>
+      )}
+    </section>
+  )
+}
