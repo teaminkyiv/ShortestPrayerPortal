@@ -73,7 +73,7 @@ export function AiSummaryPanel({
       <h2 className="mb-2 text-lg font-semibold">AI Summary</h2>
 
       {error && (
-        <div aria-live="assertive" aria-atomic="true" className="mb-3 rounded bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+        <div role="alert" aria-live="assertive" aria-atomic="true" className="mb-3 rounded bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
           {error.includes('API ключ не настроен') ? (
             <>
               API ключ не настроен.{' '}

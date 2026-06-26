@@ -26,7 +26,7 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
       const res = await fetch('/api/admin/settings/api-keys', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider, key: key.trim() }),
+        body: JSON.stringify({ provider, keyValue: key.trim() }),
       })
       if (!res.ok) throw new Error('Failed to save')
       setKey('')
@@ -57,7 +57,7 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
   }
 
   return (
-    <div className="mb-6 rounded border bg-white p-4">
+    <div className="mb-6 rounded border bg-white p-4" data-testid={`api-key-form-${provider}`}>
       <div className="mb-3 flex items-center gap-2">
         <h3 className="font-semibold text-gray-800">{label}</h3>
         {isSet
@@ -69,6 +69,7 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
       {message && (
         <div
           aria-live="polite"
+          {...(message.type === 'success' ? { 'data-testid': 'api-key-saved-notice' } : {})}
           className={`mb-3 rounded px-3 py-2 text-sm ${
             message.type === 'success'
               ? 'bg-green-50 text-green-700 border border-green-200'
@@ -87,6 +88,7 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
           placeholder={isSet ? 'Введите новый ключ для замены' : 'Введите API ключ'}
           className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           aria-label={`API ключ для ${label}`}
+          data-testid={`api-key-input-${provider}`}
         />
         <button
           onClick={handleSave}
@@ -101,7 +103,7 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
             disabled={deleting}
             className="rounded border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
           >
-            {deleting ? 'Удаление…' : 'Удалить'}
+            {deleting ? 'Удаление…' : 'Удалить ключ'}
           </button>
         )}
       </div>

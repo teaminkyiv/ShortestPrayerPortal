@@ -20,10 +20,15 @@ export async function GET(req: NextRequest) {
     getApiKey('openai'),
   ])
 
-  return NextResponse.json({
-    anthropic: !!anthropic,
-    openai:    !!openai,
-  })
+  function maskKey(raw: string): string {
+    return raw.slice(0, 6) + '****' + raw.slice(-4)
+  }
+
+  const keys = []
+  if (anthropic) keys.push({ provider: 'anthropic', maskedKey: maskKey(anthropic) })
+  if (openai)    keys.push({ provider: 'openai',    maskedKey: maskKey(openai) })
+
+  return NextResponse.json({ keys })
 }
 
 export async function PUT(req: NextRequest) {
@@ -31,15 +36,15 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await req.json() as { provider?: string; key?: string }
-  if (!body.provider || !body.key) {
-    return NextResponse.json({ error: 'provider and key are required' }, { status: 400 })
+  const body = await req.json() as { provider?: string; keyValue?: string }
+  if (!body.provider || !body.keyValue) {
+    return NextResponse.json({ error: 'provider and keyValue are required' }, { status: 400 })
   }
   if (body.provider !== 'anthropic' && body.provider !== 'openai') {
     return NextResponse.json({ error: 'provider must be anthropic or openai' }, { status: 400 })
   }
 
-  await setApiKey(body.provider, body.key)
+  await setApiKey(body.provider, body.keyValue)
   return NextResponse.json({ ok: true })
 }
 
