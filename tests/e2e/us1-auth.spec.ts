@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { login, ensureLoggedOut } from './helpers/auth'
 
 const CORRECT_PASSWORD = process.env.TEST_ADMIN_PASSWORD ?? 'test-password'
+const isHttps = (process.env.BASE_URL ?? 'http://localhost:3000').startsWith('https://')
 
 test.describe('US-1 — Вход в систему', () => {
 
@@ -30,7 +31,7 @@ test.describe('US-1 — Вход в систему', () => {
       const session = cookies.find(c => c.name === 'session')
       expect(session).toBeDefined()
       expect(session?.httpOnly).toBe(true)
-      expect(session?.secure).toBe(true)
+      expect(session?.secure).toBe(isHttps)
       expect(session?.sameSite).toBe('Strict')
       // 7 days in seconds ≈ 604800
       expect(session?.expires).toBeGreaterThan(Date.now() / 1000 + 604700)
