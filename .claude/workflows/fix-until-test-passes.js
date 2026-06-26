@@ -23,11 +23,20 @@ and no file under tests/ is modified
 and no source function is removed or stubbed out
 — or stop after 5 turns
 
+BEFORE RUNNING THE TEST — SERVER SETUP (do this first, every turn):
+1. Check if port 3000 is free: lsof -ti:3000
+2. If occupied — kill it: kill $(lsof -ti:3000)
+3. Start fresh dev server in background: npm run dev > /tmp/dev-server.log 2>&1 &
+4. Wait until /admin/login responds 200 or 302:
+   until curl -sf http://localhost:3000/admin/login -o /dev/null -w "%{http_code}" | grep -qE "200|302"; do sleep 3; done
+5. Then run the test with CI=true to prevent Playwright from spawning its own server:
+   CI=true npx playwright test ${testTarget} --reporter=line
+
 CONTEXT:
 - Next.js 15 App Router project, TypeScript
 - Playwright E2E tests in tests/e2e/
-- Dev server must be running for Playwright tests (start with: npm run dev)
 - Test seed script if needed: npm run seed:test (requires .env.test)
+- Always use CI=true when running playwright (prevents webServer timeout conflicts)
 
 WHAT TO DO EACH TURN:
 1. Run the test and show full output.
