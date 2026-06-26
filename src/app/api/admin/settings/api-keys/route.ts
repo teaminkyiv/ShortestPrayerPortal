@@ -7,7 +7,7 @@ import {
 
 async function authenticate(req: NextRequest): Promise<boolean> {
   const token = getTokenFromRequest(req)
-  return !!token && verifySession(token)
+  return !!token && await verifySession(token)
 }
 
 export async function GET(req: NextRequest) {
