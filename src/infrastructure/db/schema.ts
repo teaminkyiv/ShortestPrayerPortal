@@ -37,3 +37,11 @@ export const testimonyReviews = pgTable('testimony_reviews', {
   createdAt:     timestamp('created_at').defaultNow(),
   updatedAt:     timestamp('updated_at').defaultNow(),
 })
+
+export const apiKeys = pgTable('api_keys', {
+  id:        uuid('id').primaryKey().defaultRandom(),
+  provider:  text('provider').notNull().unique(), // 'anthropic' | 'openai'
+  keyValue:  text('key_value').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
