@@ -29,6 +29,11 @@ CONTEXT:
 - Dev server must be running for Playwright tests (start with: npm run dev)
 - Test seed script if needed: npm run seed:test (requires .env.test)
 
+WHAT TO DO EACH TURN:
+1. Run the test and show full output.
+2. If it passes — you're done.
+3. If it fails — read the error, identify the root cause in the source code, apply the minimal fix, then re-run to confirm.
+
 CONSTRAINTS:
 - Never modify files under tests/
 - Fix only what the error output proves is broken — no speculative changes
