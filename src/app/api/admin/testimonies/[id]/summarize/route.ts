@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getTokenFromRequest, verifySession } from '@/lib/auth'
 import { DrizzleTestimonyRepository } from '@/infrastructure/db/repositories/DrizzleTestimonyRepository'
 import { generateAiSummary } from '@/application/testimony/GenerateAiSummaryUseCase'
+import { NoApiKeyError } from '@/infrastructure/ai/AiSummaryService'
 
 export async function POST(
   req: NextRequest,
@@ -24,6 +25,9 @@ export async function POST(
       status:       review.status,
     })
   } catch (err) {
+    if (err instanceof NoApiKeyError) {
+      return NextResponse.json({ error: 'no_api_key' }, { status: 422 })
+    }
     console.error('Summarize error:', err)
     return NextResponse.json({ error: 'Failed to generate summary' }, { status: 500 })
   }
