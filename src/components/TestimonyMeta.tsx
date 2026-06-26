@@ -19,15 +19,6 @@ export function TestimonyMeta({ telegramId, language, createdAt, review }: Props
 
       <dt className="text-gray-500">Дата создания</dt>
       <dd data-testid="meta-created-at">{createdAt.toISOString()}</dd>
-
-      {review.publishedAt && (
-        <>
-          <dt className="text-gray-500">Опубликовано</dt>
-          <dd data-testid="published-at">{review.publishedAt.toISOString()}</dd>
-          <dt className="text-gray-500">Кем</dt>
-          <dd data-testid="published-by">{review.publishedBy}</dd>
-        </>
-      )}
     </dl>
   )
 }
