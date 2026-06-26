@@ -2,7 +2,8 @@
 
 **Date:** 2026-06-26  
 **Status:** Draft  
-**Связан с:** `2026-06-25-telegram-testimony-bot-prd.md`
+**Связан с:** `2026-06-25-telegram-testimony-bot-prd.md`  
+**URL:** `https://shortest-prayer-portal.vercel.app`
 
 ---
 
@@ -332,7 +333,7 @@ src/
 |---|---|---|
 | `DATABASE_URL` | Neon PostgreSQL connection string | Деплоер (свой Neon проект) |
 | `NEXTAUTH_SECRET` | Подпись JWT сессий NextAuth | Деплоер (`openssl rand -base64 32`) |
-| `NEXTAUTH_URL` | Публичный URL приложения | Деплоер (напр. `https://admin.example.com`) |
+| `NEXTAUTH_URL` | Публичный URL приложения | `https://shortest-prayer-portal.vercel.app` |
 | `OPENAI_API_KEY` | GPT-4o для AI-суммаризации | Деплоер (свой OpenAI ключ) |
 | `ANTHROPIC_API_KEY` | Claude как альтернативный LLM | Деплоер (свой Anthropic ключ, опционально) |
 | `RESEND_API_KEY` | Отправка email-уведомлений | Деплоер (свой Resend ключ) |
