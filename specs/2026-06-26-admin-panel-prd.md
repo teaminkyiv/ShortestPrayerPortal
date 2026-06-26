@@ -92,21 +92,12 @@ export const testimonyReviews = pgTable('testimony_reviews', {
   editedVersion: text('edited_version'),
   summarizedAt:  timestamp('summarized_at'),
   publishedAt:   timestamp('published_at'),
+  publishedBy:   text('published_by'), // логин редактора; сейчас всегда 'admin'
   createdAt:     timestamp('created_at').defaultNow(),
   updatedAt:     timestamp('updated_at').defaultNow(),
 });
 ```
 
-### `notifications` — лог уведомлений
-```ts
-export const notifications = pgTable('notifications', {
-  id:          uuid('id').primaryKey().defaultRandom(),
-  type:        text('type').notNull(), // 'new_testimony'
-  testimonyId: uuid('testimony_id').references(() => testimonies.id),
-  channel:     text('channel').notNull(), // 'email' | 'telegram'
-  sentAt:      timestamp('sent_at').defaultNow(),
-});
-```
 
 ---
 
@@ -142,51 +133,40 @@ src/
 ├── domain/                    # Чистые сущности, без зависимостей
 │   ├── entities/
 │   │   ├── Testimony.ts       # Testimony + TestimonyReview
-│   │   ├── AdminUser.ts
 │   │   └── BotUser.ts
 │   └── repositories/          # Интерфейсы (порты)
-│       ├── ITestimonyRepository.ts
-│       ├── IAdminUserRepository.ts
-│       └── INotificationService.ts
+│       └── ITestimonyRepository.ts
 │
 ├── application/               # Use cases — бизнес-логика
-│   ├── testimony/
-│   │   ├── GetTestimoniesUseCase.ts
-│   │   ├── GetTestimonyDetailUseCase.ts
-│   │   ├── GenerateAiSummaryUseCase.ts
-│   │   └── PublishTestimonyUseCase.ts
-│   └── admin/
-│       ├── InviteAdminUserUseCase.ts
-│       └── UpdateAdminUserUseCase.ts
+│   └── testimony/
+│       ├── GetTestimoniesUseCase.ts
+│       ├── GetTestimonyDetailUseCase.ts
+│       ├── GenerateAiSummaryUseCase.ts
+│       └── PublishTestimonyUseCase.ts
 │
 ├── infrastructure/            # Реализации (адаптеры)
 │   ├── db/
 │   │   ├── schema.ts          # Drizzle schema (все таблицы)
 │   │   ├── client.ts          # Neon + Drizzle client
 │   │   └── repositories/
-│   │       ├── DrizzleTestimonyRepository.ts
-│   │       └── DrizzleAdminUserRepository.ts
-│   ├── ai/
-│   │   └── OpenAiSummaryService.ts
-│   └── notifications/
-│       ├── ResendEmailService.ts
-│       └── TelegramNotifyService.ts
+│   │       └── DrizzleTestimonyRepository.ts
+│   └── ai/
+│       └── OpenAiSummaryService.ts
 │
 └── presentation/              # Next.js App Router
     ├── app/
-    │   ├── (auth)/
-    │   │   └── login/page.tsx
-    │   └── (dashboard)/
-    │       ├── layout.tsx
-    │       ├── page.tsx                        # Dashboard
-    │       ├── testimonies/
-    │       │   ├── page.tsx                    # Список свидетельств
-    │       │   └── [id]/page.tsx               # Детальная страница
-    │       └── users/
-    │           └── page.tsx                    # Управление (только admin)
+    │   ├── admin/
+    │   │   ├── login/page.tsx
+    │   │   ├── layout.tsx
+    │   │   ├── page.tsx                        # Dashboard
+    │   │   └── testimonies/
+    │   │       ├── page.tsx                    # Список свидетельств
+    │   │       └── [id]/page.tsx               # Детальная страница
+    │   └── api/
+    │       └── webhooks/
+    │           └── testimony-finished/route.ts # Публичный webhook от бота
     ├── components/
-    └── api/
-        └── route handlers (Next.js API routes)
+    └── middleware.ts                           # Auth guard для /admin/*
 ```
 
 ---
@@ -213,7 +193,7 @@ src/
 - Dashboard показывает счётчики: `new`, `summarized`, `published`
 - Выделяет красным/оранжевым количество `new` (непрочитанных)
 - Таблица последних 20 свидетельств со статусом
-- Каждая строка: имя пользователя Telegram (или ID), язык, дата завершения, статус
+- Каждая строка: Telegram ID пользователя, язык, дата завершения, статус
 
 ---
 
@@ -250,26 +230,21 @@ src/
 
 - Textarea с `editedVersion` (pre-filled из AI summary если есть, иначе пусто)
 - Кнопка "Save draft" — сохраняет без смены статуса
-- Кнопка "Publish" — сохраняет + статус → `published` + фиксирует `publishedBy` и `publishedAt`
-- После публикации поля становятся read-only (редактор видит кто и когда опубликовал)
+- Кнопка "Publish" — сохраняет + статус → `published` + фиксирует `publishedBy` (строка "admin") и `publishedAt`
+- После публикации поля становятся read-only (видно когда опубликовано)
 
 ---
 
 
-### Уведомления
+### Webhook от бота
 
-**US-9: Оповещение о новом свидетельстве**  
-Как редактор, я хочу получать уведомление когда приходит новое завершённое свидетельство, чтобы не пропустить работу.
+**US-9: Создание записи review при завершении свидетельства**
 
-- Триггер: бот меняет `testimonies.status = 'finished'`
-- Система создаёт запись в `testimony_reviews` со статусом `new`
-- Все активные `admin_users` получают уведомление:
-  - **Email** (Resend): тема "Новое свидетельство #ID", ссылка на детальную страницу
-  - **Telegram** (если указан `telegramId`): короткое сообщение от бота с кнопкой-ссылкой на страницу
-- Уведомление логируется в `notifications`
-
-**Как триггер попадает в admin-систему:**  
-Бот вызывает `finishTestimony()` → дополнительно вставляет запись в `testimony_reviews` и вызывает webhook или напрямую pub/sub. Простейший вариант MVP: Next.js API route `POST /api/webhooks/testimony-finished` вызывается из бота после завершения свидетельства.
+- Бот после `testimonies.status = 'finished'` вызывает `POST /api/webhooks/testimony-finished`
+- Тело запроса: `{ "testimonyId": "<uuid>" }`
+- Заголовок: `X-Webhook-Secret: <WEBHOOK_SECRET>`
+- Admin panel создаёт запись в `testimony_reviews` со статусом `new`
+- Endpoint публичный (вне `/admin/*`), защищён только `WEBHOOK_SECRET`
 
 ---
 
@@ -306,8 +281,6 @@ src/
 | `SESSION_SECRET` | Подпись httpOnly cookie сессии | Деплоер (`openssl rand -base64 32`) |
 | `OPENAI_API_KEY` | GPT-4o для AI-суммаризации | Деплоер (свой OpenAI ключ) |
 | `ANTHROPIC_API_KEY` | Claude как альтернативный LLM (опционально) | Деплоер (свой Anthropic ключ) |
-| `RESEND_API_KEY` | Отправка email-уведомлений | Деплоер (свой Resend ключ) |
-| `TELEGRAM_BOT_TOKEN` | Отправка Telegram-уведомлений | Деплоер (токен своего бота) |
 | `WEBHOOK_SECRET` | Аутентификация вебхука от бота | Деплоер (любая случайная строка) |
 
 ### Правила
@@ -321,6 +294,8 @@ src/
 
 ## Что НЕ входит в MVP
 
+- Уведомления (email и Telegram) при новом свидетельстве
+- Управление пользователями (invite, роли, деактивация)
 - Экспорт свидетельств в PDF/Word
 - Комментарии редакторов друг другу
 - История изменений `editedVersion`
