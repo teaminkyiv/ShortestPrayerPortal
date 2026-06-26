@@ -7,6 +7,11 @@ export async function publishTestimony(
   testimonyId: string,
   editedVersion: string,
 ): Promise<TestimonyReview> {
+  const detail = await repo.getTestimonyDetail(testimonyId)
+  if (!detail) throw new Error('Testimony not found')
+  if (detail.review.status === 'published') {
+    throw new Error('Testimony is already published')
+  }
   const now = new Date()
   return repo.updateReview(testimonyId, {
     editedVersion,

@@ -14,7 +14,7 @@ export async function PATCH(
   }
 
   const { id }          = await params
-  const { editedVersion } = await req.json()
+  const { editedVersion } = await req.json().catch(() => ({}))
 
   const repo = new DrizzleTestimonyRepository()
   await saveDraft(repo, id, editedVersion)

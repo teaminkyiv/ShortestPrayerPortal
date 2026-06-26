@@ -34,6 +34,7 @@ async function seed() {
     reviewStatus:  string
     aiSummary:     string | null
     editedVersion: string | null
+    summarizedAt:  Date | null
     publishedAt:   Date | null
     publishedBy:   string | null
     numChunks:     number
@@ -43,6 +44,7 @@ async function seed() {
       reviewStatus:  'new',
       aiSummary:     'Test summary text',
       editedVersion: null,
+      summarizedAt:  null,
       publishedAt:   null,
       publishedBy:   null,
       numChunks:     3,
@@ -52,6 +54,7 @@ async function seed() {
       reviewStatus:  'new',
       aiSummary:     null,
       editedVersion: null,
+      summarizedAt:  null,
       publishedAt:   null,
       publishedBy:   null,
       numChunks:     2,
@@ -61,6 +64,7 @@ async function seed() {
       reviewStatus:  'summarized',
       aiSummary:     'AI generated summary',
       editedVersion: 'Previously saved draft text',
+      summarizedAt:  new Date('2026-01-15T10:00:00Z'),
       publishedAt:   null,
       publishedBy:   null,
       numChunks:     2,
@@ -70,6 +74,7 @@ async function seed() {
       reviewStatus:  'summarized',
       aiSummary:     'Summary for publish',
       editedVersion: null,
+      summarizedAt:  new Date('2026-01-15T10:00:00Z'),
       publishedAt:   null,
       publishedBy:   null,
       numChunks:     2,
@@ -79,6 +84,7 @@ async function seed() {
       reviewStatus:  'summarized',
       aiSummary:     'Fresh AI summary to prefill',
       editedVersion: null,
+      summarizedAt:  new Date('2026-01-15T10:00:00Z'),
       publishedAt:   null,
       publishedBy:   null,
       numChunks:     2,
@@ -88,6 +94,7 @@ async function seed() {
       reviewStatus:  'published',
       aiSummary:     'Published summary',
       editedVersion: 'Final published version',
+      summarizedAt:  null,
       publishedAt:   new Date('2026-01-01T12:00:00Z'),
       publishedBy:   'admin',
       numChunks:     2,
@@ -118,6 +125,7 @@ async function seed() {
       status:        r.reviewStatus,
       aiSummary:     r.aiSummary,
       editedVersion: r.editedVersion,
+      summarizedAt:  r.summarizedAt,
       publishedAt:   r.publishedAt,
       publishedBy:   r.publishedBy,
     })

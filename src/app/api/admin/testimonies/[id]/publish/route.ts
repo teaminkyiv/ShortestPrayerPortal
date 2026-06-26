@@ -14,13 +14,15 @@ export async function POST(
   }
 
   const { id }          = await params
-  const { editedVersion } = await req.json()
+  const { editedVersion } = await req.json().catch(() => ({}))
 
-  const repo   = new DrizzleTestimonyRepository()
-  const review = await publishTestimony(repo, id, editedVersion)
-  return NextResponse.json({
-    status:      review.status,
-    publishedAt: review.publishedAt,
-    publishedBy: review.publishedBy,
-  })
+  const repo = new DrizzleTestimonyRepository()
+  try {
+    const review = await publishTestimony(repo, id, editedVersion)
+    return NextResponse.json({ status: review.status, publishedAt: review.publishedAt, publishedBy: review.publishedBy })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Failed to publish'
+    const status = msg.includes('already published') ? 409 : 500
+    return NextResponse.json({ error: msg }, { status })
+  }
 }

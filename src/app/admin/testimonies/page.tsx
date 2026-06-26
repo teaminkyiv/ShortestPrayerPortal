@@ -17,7 +17,7 @@ export default async function TestimoniesPage({ searchParams }: Props) {
   const status  = (['new', 'summarized', 'published'].includes(params.status ?? '')
     ? params.status as TestimonyStatus
     : 'all')
-  const page = Math.max(1, parseInt(params.page ?? '1', 10))
+  const page = Math.max(1, parseInt(params.page ?? '1', 10) || 1)
 
   const repo = new DrizzleTestimonyRepository()
   const { items, total } = await getTestimonies(repo, { status, page, pageSize: PAGE_SIZE })

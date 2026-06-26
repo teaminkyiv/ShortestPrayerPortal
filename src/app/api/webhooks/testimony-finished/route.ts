@@ -6,7 +6,12 @@ import { DrizzleTestimonyRepository } from '@/infrastructure/db/repositories/Dri
 export async function POST(req: NextRequest) {
   const secret = req.headers.get('x-webhook-secret')
   const expected = process.env.WEBHOOK_SECRET
-  if (!secret || !expected || !timingSafeEqual(Buffer.from(secret), Buffer.from(expected))) {
+  if (
+    !secret ||
+    !expected ||
+    secret.length !== expected.length ||
+    !timingSafeEqual(Buffer.from(secret), Buffer.from(expected))
+  ) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 
