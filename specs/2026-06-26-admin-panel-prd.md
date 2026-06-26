@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-26  
 **Status:** Draft  
-**Связан с:** `2026-06-25-telegram-testimony-bot-prd.md`  
+**Связан с:** `2026-06-26-user-scenarios.md`  
 **URL:** `https://shortest-prayer-portal.vercel.app`
 
 ---
@@ -28,7 +28,6 @@
 | Стили | Tailwind CSS |
 | Auth | Простой пароль из env (`ADMIN_PANEL_PASSWORD`) + httpOnly cookie |
 | AI Summary | OpenAI GPT-4o |
-| Уведомления | Email (Resend) + Telegram-бот |
 | Архитектура | Pragmatic Clean Architecture (Domain / Application / Infrastructure / Presentation) |
 
 **Почему Vercel, не Railway:** Admin panel — Next.js SSR/SSG, идеально ложится на Vercel. Бот продолжает работать на Railway. Они разделены; общий ресурс — база Neon.
@@ -207,6 +206,7 @@ src/
 - При неверном пароле — сообщение "Неверный пароль"
 - При успехе — httpOnly cookie, редирект на `/admin`
 - Сессия живёт 7 дней; после истечения → редирект на `/admin/login`
+- Выход из системы — `[deferred: не в MVP]` (сессия истекает автоматически через 7 дней)
 
 ---
 
@@ -248,7 +248,7 @@ src/
 - После клика — spinner, затем текст summary
 - Summary генерируется из всех чанков + язык пользователя
 - Статус меняется на `summarized`
-- Если summary уже есть — показывается; кнопка "Regenerate"
+- При статусе `summarized` — summary показывается; вместо "Generate Summary" отображается кнопка "Regenerate" (генерирует заново, перезаписывает, статус остаётся `summarized`)
 
 **US-6: Редактирование и публикация**  
 Как редактор, я хочу написать финальную версию свидетельства и опубликовать её, чтобы свидетельство стало готово к использованию.
@@ -314,6 +314,30 @@ src/
 - **`.env` только локально.** Файл всегда в `.gitignore`. В репозиторий не попадает никогда.
 - **`.env.example` в репозитории.** Содержит все переменные с пустыми значениями и описанием — для онбординга новых деплоеров.
 - **Выбор LLM настраивается.** Если задан `ANTHROPIC_API_KEY` — используется Claude; если только `OPENAI_API_KEY` — GPT-4o. Код обязан поддерживать оба варианта.
+
+---
+
+## E2E тесты (Playwright)
+
+Тесты находятся в `tests/e2e/` и написаны в стиле BDD (Given / When / Then через `test.step()`).
+
+**При создании Next.js приложения** создай файл `.env.test` (он в `.gitignore`, в репозиторий не попадает) и заполни его UUID реальных записей из тестовой БД:
+
+| Переменная | Назначение |
+|---|---|
+| `BASE_URL` | URL dev-сервера (по умолчанию `http://localhost:3000`) |
+| `TEST_ADMIN_PASSWORD` | Значение `ADMIN_PANEL_PASSWORD` для тестового окружения |
+| `WEBHOOK_SECRET` | Значение `WEBHOOK_SECRET` для тестового окружения |
+| `TEST_TESTIMONY_ID` | UUID любого свидетельства в тестовой БД |
+| `TEST_NEW_TESTIMONY_ID` | UUID свидетельства со статусом `new` |
+| `TEST_SUMMARIZED_TESTIMONY_ID` | UUID свидетельства со статусом `summarized` (для черновика и проверки пустого поля) |
+| `TEST_FOR_PUBLISH_TESTIMONY_ID` | UUID свидетельства со статусом `summarized` (будет опубликовано в тесте 6.2 — отдельный от выше) |
+| `TEST_FRESH_SUMMARIZED_TESTIMONY_ID` | UUID свидетельства со статусом `summarized` и `edited_version = NULL` (для теста pre-fill 6.3) |
+| `TEST_PUBLISHED_TESTIMONY_ID` | UUID свидетельства со статусом `published` |
+
+> Шаблон: `.env.test.example` в корне проекта. Каждый тест, который меняет состояние БД, использует отдельный UUID чтобы избежать конфликтов при параллельном запуске.
+
+Запуск тестов: `npx playwright test`
 
 ---
 
