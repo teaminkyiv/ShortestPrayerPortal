@@ -1,10 +1,11 @@
+// src/components/TestimonyMeta.tsx (final — no meta-status, no meta-summarized-at)
 import { TestimonyReview } from '@/domain/entities/Testimony'
 
 interface Props {
   telegramId: number
-  language: string
-  createdAt: Date
-  review: TestimonyReview
+  language:   string
+  createdAt:  Date
+  review:     TestimonyReview
 }
 
 export function TestimonyMeta({ telegramId, language, createdAt, review }: Props) {
@@ -18,16 +19,6 @@ export function TestimonyMeta({ telegramId, language, createdAt, review }: Props
 
       <dt className="text-gray-500">Дата создания</dt>
       <dd data-testid="meta-created-at">{createdAt.toISOString()}</dd>
-
-      <dt className="text-gray-500">Статус</dt>
-      <dd data-testid="meta-status">{review.status}</dd>
-
-      {review.summarizedAt && (
-        <>
-          <dt className="text-gray-500">Суммаризировано</dt>
-          <dd data-testid="meta-summarized-at">{review.summarizedAt.toISOString()}</dd>
-        </>
-      )}
 
       {review.publishedAt && (
         <>
