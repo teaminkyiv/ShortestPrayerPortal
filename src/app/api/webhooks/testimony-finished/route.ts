@@ -1,10 +1,12 @@
 // src/app/api/webhooks/testimony-finished/route.ts
+import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { DrizzleTestimonyRepository } from '@/infrastructure/db/repositories/DrizzleTestimonyRepository'
 
 export async function POST(req: NextRequest) {
   const secret = req.headers.get('x-webhook-secret')
-  if (!secret || secret !== process.env.WEBHOOK_SECRET) {
+  const expected = process.env.WEBHOOK_SECRET
+  if (!secret || !expected || !timingSafeEqual(Buffer.from(secret), Buffer.from(expected))) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 

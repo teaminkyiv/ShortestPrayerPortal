@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSession, getSessionCookieOptions } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
+  if (!process.env.ADMIN_PANEL_PASSWORD) {
+    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
+  }
+
   const body = await req.json().catch(() => ({}))
   const { password } = body as { password?: string }
 

@@ -5,7 +5,9 @@ const COOKIE_NAME = 'session'
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 7 // 7 days
 
 function getSecret(): Uint8Array {
-  return new TextEncoder().encode(process.env.SESSION_SECRET!)
+  const secret = process.env.SESSION_SECRET
+  if (!secret) throw new Error('SESSION_SECRET is not configured')
+  return new TextEncoder().encode(secret)
 }
 
 export async function createSession(): Promise<string> {
