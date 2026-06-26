@@ -39,6 +39,15 @@ export function AiSummaryPanel({
       method: 'POST',
     })
 
+    if (res.status === 422) {
+      const data = await res.json()
+      if (data.error === 'no_api_key') {
+        setError('API ключ не настроен. Перейдите в настройки чтобы добавить ключ.')
+        setLoading(false)
+        return
+      }
+    }
+
     if (!res.ok) {
       setError('Не удалось сгенерировать summary. Попробуйте ещё раз.')
       setLoading(false)
@@ -65,7 +74,16 @@ export function AiSummaryPanel({
 
       {error && (
         <div aria-live="assertive" aria-atomic="true" className="mb-3 rounded bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
-          {error}
+          {error.includes('API ключ не настроен') ? (
+            <>
+              API ключ не настроен.{' '}
+              <a href="/admin/settings" className="underline hover:text-red-900">
+                Перейти в настройки
+              </a>
+            </>
+          ) : (
+            error
+          )}
         </div>
       )}
 
