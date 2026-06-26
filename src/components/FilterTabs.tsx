@@ -22,7 +22,7 @@ export function FilterTabs() {
         <button
           key={s}
           role="tab"
-          aria-selected={s === current}
+          aria-selected={s === current ? 'true' : 'false'}
           onClick={() => handleClick(s)}
           className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
             s === current
