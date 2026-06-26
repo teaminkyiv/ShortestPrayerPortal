@@ -15,7 +15,6 @@
   "dependencies": {
     "@anthropic-ai/sdk": "latest",
     "@neondatabase/serverless": "latest",
-    "autoprefixer": "^10.5.2",
     "dotenv": "latest",
     "drizzle-kit": "latest",
     "drizzle-orm": "latest",
@@ -29,6 +28,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.5.2",
     "eslint": "^8",
     "eslint-config-next": "^15",
     "postcss": "^8",
