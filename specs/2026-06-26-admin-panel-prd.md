@@ -25,7 +25,8 @@
 | Hosting | Vercel |
 | База данных | Neon (PostgreSQL) — та же что у бота |
 | ORM | Drizzle ORM |
-| Auth | NextAuth.js v5 (credentials provider) |
+| Стили | Tailwind CSS |
+| Auth | Простой пароль из env (`ADMIN_PANEL_PASSWORD`) + httpOnly cookie |
 | AI Summary | OpenAI GPT-4o |
 | Уведомления | Email (Resend) + Telegram-бот |
 | Архитектура | Clean Architecture (Domain / Application / Infrastructure / Presentation) |
@@ -34,14 +35,17 @@
 
 ---
 
-## Роли пользователей
+## Аутентификация
 
-| Роль | Возможности |
-|---|---|
-| `admin` | Всё что может `editor` + управление пользователями (invite, deactivate, смена роли) |
-| `editor` | Просмотр пользователей бота и их свидетельств, запуск AI summary, редактирование и публикация |
+Панель живёт целиком под `/admin`. Единственная защита — общий пароль.
 
-Пользователи admin panel **не связаны** с пользователями Telegram-бота — это отдельная таблица.
+- `/admin/login` — публичная страница: одно поле пароля (без имени пользователя)
+- Введённый пароль сравнивается с `ADMIN_PANEL_PASSWORD` из env
+- При совпадении — ставится httpOnly cookie с сессионным токеном, редирект на `/admin`
+- Все роуты `/admin/*` кроме `/admin/login` защищены middleware — без валидной cookie → редирект на `/admin/login`
+- Нет ролей, нет таблицы пользователей, нет NextAuth
+
+> **Это MVP-аутентификация.** Одна команда, один пароль. Усложним позже при необходимости.
 
 ---
 
@@ -74,35 +78,20 @@ CREATE TABLE IF NOT EXISTS chunks (
 
 ### Новые таблицы (admin panel, Drizzle миграция)
 
-### `admin_users` — пользователи панели
-```ts
-export const adminUsers = pgTable('admin_users', {
-  id:           uuid('id').primaryKey().defaultRandom(),
-  email:        text('email').notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
-  name:         text('name').notNull(),
-  role:         text('role').notNull(), // 'admin' | 'editor'
-  isActive:     boolean('is_active').notNull().default(true),
-  telegramId:   bigint('telegram_id', { mode: 'number' }), // для уведомлений в Telegram
-  createdAt:    timestamp('created_at').defaultNow(),
-  createdBy:    uuid('created_by').references(() => adminUsers.id),
-});
-```
+> Таблица `admin_users` не нужна — аутентификация через `ADMIN_PANEL_PASSWORD`.
 
 ### `testimony_reviews` — статус обработки свидетельства в админке
 ```ts
 export const testimonyReviews = pgTable('testimony_reviews', {
-  id:              uuid('id').primaryKey().defaultRandom(),
-  testimonyId:     uuid('testimony_id').notNull().references(() => testimonies.id).unique(),
-  status:          text('status').notNull().default('new'), // 'new' | 'summarized' | 'published'
-  aiSummary:       text('ai_summary'),           // генерируется автоматически или вручную
-  editedVersion:   text('edited_version'),        // финальная версия от редактора
-  assignedTo:      uuid('assigned_to').references(() => adminUsers.id),
-  summarizedAt:    timestamp('summarized_at'),
-  publishedAt:     timestamp('published_at'),
-  publishedBy:     uuid('published_by').references(() => adminUsers.id),
-  createdAt:       timestamp('created_at').defaultNow(),
-  updatedAt:       timestamp('updated_at').defaultNow(),
+  id:            uuid('id').primaryKey().defaultRandom(),
+  testimonyId:   uuid('testimony_id').notNull().references(() => testimonies.id).unique(),
+  status:        text('status').notNull().default('new'), // 'new' | 'summarized' | 'published'
+  aiSummary:     text('ai_summary'),
+  editedVersion: text('edited_version'),
+  summarizedAt:  timestamp('summarized_at'),
+  publishedAt:   timestamp('published_at'),
+  createdAt:     timestamp('created_at').defaultNow(),
+  updatedAt:     timestamp('updated_at').defaultNow(),
 });
 ```
 
@@ -112,7 +101,6 @@ export const notifications = pgTable('notifications', {
   id:          uuid('id').primaryKey().defaultRandom(),
   type:        text('type').notNull(), // 'new_testimony'
   testimonyId: uuid('testimony_id').references(() => testimonies.id),
-  sentTo:      uuid('sent_to').references(() => adminUsers.id),
   channel:     text('channel').notNull(), // 'email' | 'telegram'
   sentAt:      timestamp('sent_at').defaultNow(),
 });
@@ -206,13 +194,12 @@ src/
 ### Аутентификация
 
 **US-1: Вход в систему**  
-Как редактор, я хочу войти по email и паролю, чтобы получить доступ к панели.
+Как редактор, я хочу ввести пароль и попасть в панель.
 
-- Форма: email + password
-- При неверных данных — сообщение об ошибке (без уточнения что именно неверно)
-- При успехе — редирект на Dashboard
-- Сессия хранится в httpOnly cookie (NextAuth)
-- Деактивированный пользователь не может войти
+- Форма: одно поле пароля
+- При неверном пароле — сообщение "Неверный пароль"
+- При успехе — httpOnly cookie, редирект на `/admin`
+- Сессия живёт 7 дней; после истечения → редирект на `/admin/login`
 
 ---
 
@@ -266,22 +253,6 @@ src/
 
 ---
 
-### Управление пользователями (только admin)
-
-**US-7: Приглашение нового редактора**  
-Как admin, я хочу добавить нового редактора по email, чтобы расширить команду.
-
-- Форма: email, имя, роль (admin / editor), Telegram ID (опционально)
-- Система генерирует временный пароль и отправляет на email
-- Новый пользователь должен сменить пароль при первом входе
-
-**US-8: Деактивация пользователя**  
-Как admin, я хочу деактивировать редактора, чтобы он потерял доступ без удаления истории.
-
-- Кнопка "Deactivate" в списке пользователей
-- Деактивированный пользователь не может войти; его действия в истории сохраняются
-
----
 
 ### Уведомления
 
@@ -303,20 +274,17 @@ src/
 ## Страницы и навигация
 
 ```
-/login                          — вход (публичная)
-/                               — Dashboard (редирект на /testimonies если нет новых)
-/testimonies                    — список всех свидетельств
-/testimonies/[id]               — детальная страница
-/users                          — управление пользователями (только admin)
-/users/invite                   — форма приглашения (только admin)
+/admin/login                    — вход (публичная)
+/admin                          — Dashboard
+/admin/testimonies              — список всех свидетельств
+/admin/testimonies/[id]         — детальная страница
 ```
 
 ---
 
 ## Нефункциональные требования
 
-- **Auth guard:** все роуты кроме `/login` защищены. Неавторизованный → редирект на `/login`.
-- **Role guard:** `/users` и `/users/invite` — только `admin`. Editor видит 403.
+- **Auth guard:** все роуты `/admin/*` кроме `/admin/login` защищены middleware. Неавторизованный → редирект на `/admin/login`.
 - **Optimistic UI:** кнопки блокируются во время запроса, показывают spinner.
 - **Error boundaries:** ошибки AI / DB показывают toast, не ломают страницу.
 - **Mobile:** не приоритет MVP, но layout не должен ломаться на планшете.
@@ -332,10 +300,10 @@ src/
 | Переменная | Назначение | Кто предоставляет |
 |---|---|---|
 | `DATABASE_URL` | Neon PostgreSQL connection string | Деплоер (свой Neon проект) |
-| `NEXTAUTH_SECRET` | Подпись JWT сессий NextAuth | Деплоер (`openssl rand -base64 32`) |
-| `NEXTAUTH_URL` | Публичный URL приложения | `https://shortest-prayer-portal.vercel.app` |
+| `ADMIN_PANEL_PASSWORD` | Единственный пароль доступа к панели | Деплоер (любая строка) |
+| `SESSION_SECRET` | Подпись httpOnly cookie сессии | Деплоер (`openssl rand -base64 32`) |
 | `OPENAI_API_KEY` | GPT-4o для AI-суммаризации | Деплоер (свой OpenAI ключ) |
-| `ANTHROPIC_API_KEY` | Claude как альтернативный LLM | Деплоер (свой Anthropic ключ, опционально) |
+| `ANTHROPIC_API_KEY` | Claude как альтернативный LLM (опционально) | Деплоер (свой Anthropic ключ) |
 | `RESEND_API_KEY` | Отправка email-уведомлений | Деплоер (свой Resend ключ) |
 | `TELEGRAM_BOT_TOKEN` | Отправка Telegram-уведомлений | Деплоер (токен своего бота) |
 | `WEBHOOK_SECRET` | Аутентификация вебхука от бота | Деплоер (любая случайная строка) |
