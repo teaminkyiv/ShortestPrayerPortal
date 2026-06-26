@@ -4,8 +4,7 @@ import { DrizzleTestimonyRepository } from '@/infrastructure/db/repositories/Dri
 import { getTestimonyDetail } from '@/application/testimony/GetTestimonyDetailUseCase'
 import { ChunksList } from '@/components/ChunksList'
 import { TestimonyMeta } from '@/components/TestimonyMeta'
-import { AiSummaryPanel } from '@/components/AiSummaryPanel'
-import { EditPublishPanel } from '@/components/EditPublishPanel'
+import { TestimonyDetailClient } from '@/components/TestimonyDetailClient'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -31,18 +30,12 @@ export default async function TestimonyDetailPage({ params }: Props) {
         review={review}
       />
 
-      <AiSummaryPanel
+      <TestimonyDetailClient
         testimonyId={id}
         initialSummary={review.aiSummary}
         initialStatus={review.status}
         initialSummarizedAt={review.summarizedAt?.toISOString() ?? null}
-      />
-
-      <EditPublishPanel
-        testimonyId={id}
         initialEditedVersion={review.editedVersion}
-        initialAiSummary={review.aiSummary}
-        initialStatus={review.status}
         initialPublishedAt={review.publishedAt?.toISOString() ?? null}
         initialPublishedBy={review.publishedBy}
       />

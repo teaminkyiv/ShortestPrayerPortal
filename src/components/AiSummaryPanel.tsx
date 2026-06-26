@@ -8,6 +8,8 @@ interface Props {
   initialSummary:      string | null
   initialStatus:       string
   initialSummarizedAt: string | null
+  onStatusChange?:     (status: string) => void
+  externalStatus?:     string
 }
 
 export function AiSummaryPanel({
@@ -15,6 +17,8 @@ export function AiSummaryPanel({
   initialSummary,
   initialStatus,
   initialSummarizedAt,
+  onStatusChange,
+  externalStatus,
 }: Props) {
   const [summary,      setSummary]      = useState(initialSummary)
   const [status,       setStatus]       = useState(initialStatus)
@@ -23,7 +27,9 @@ export function AiSummaryPanel({
   const [error,        setError]        = useState<string | null>(null)
 
   const hasSummary  = !!summary
-  const isPublished = status === 'published'
+  // Use externalStatus if provided (allows parent to sync publish state)
+  const displayStatus = externalStatus ?? status
+  const isPublished = displayStatus === 'published'
 
   async function handleGenerate() {
     setLoading(true)
@@ -43,14 +49,14 @@ export function AiSummaryPanel({
     setSummary(data.aiSummary)
     setStatus(data.status)
     setSummarizedAt(data.summarizedAt)
+    onStatusChange?.(data.status)
     setLoading(false)
   }
 
   return (
     <section className="mb-6">
-      {/* Live status — also tracked by meta-status in TestimonyMeta (server render).
-          If tests check meta-status after client actions, we need this hidden span. */}
-      <span data-testid="meta-status" className="hidden">{status}</span>
+      {/* Live status — updated by AI generation and synced from publish action */}
+      <span data-testid="meta-status" className="sr-only">{displayStatus}</span>
       {summarizedAt && (
         <span data-testid="meta-summarized-at" className="hidden">{summarizedAt}</span>
       )}
@@ -58,7 +64,7 @@ export function AiSummaryPanel({
       <h2 className="mb-2 text-lg font-semibold">AI Summary</h2>
 
       {error && (
-        <div role="alert" className="mb-3 rounded bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+        <div aria-live="assertive" aria-atomic="true" className="mb-3 rounded bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
           {error}
         </div>
       )}

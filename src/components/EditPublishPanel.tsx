@@ -9,6 +9,7 @@ interface Props {
   initialStatus:        string
   initialPublishedAt:   string | null
   initialPublishedBy:   string | null
+  onStatusChange?:      (status: string) => void
 }
 
 export function EditPublishPanel({
@@ -18,6 +19,7 @@ export function EditPublishPanel({
   initialStatus,
   initialPublishedAt,
   initialPublishedBy,
+  onStatusChange,
 }: Props) {
   const prefilled = initialEditedVersion ?? initialAiSummary ?? ''
 
@@ -72,6 +74,7 @@ export function EditPublishPanel({
     setStatus(data.status)
     setPublishedAt(data.publishedAt)
     setPublishedBy(data.publishedBy)
+    onStatusChange?.(data.status)
     setPublishing(false)
   }
 
