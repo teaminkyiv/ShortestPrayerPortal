@@ -25,7 +25,7 @@ export default defineConfig({
     ? undefined
     : {
         command: 'npm run dev',
-        url: 'http://localhost:3000',
+        url: 'http://localhost:3000/admin/login',
         reuseExistingServer: true,
       },
 })
