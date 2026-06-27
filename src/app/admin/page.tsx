@@ -3,6 +3,8 @@ import { getDashboardData } from '@/application/testimony/GetDashboardDataUseCas
 import { StatusCounter } from '@/components/StatusCounter'
 import { TestimoniesTable } from '@/components/TestimoniesTable'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const repo = new DrizzleTestimonyRepository()
   const { counts, recent } = await getDashboardData(repo)

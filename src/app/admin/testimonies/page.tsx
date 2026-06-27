@@ -3,6 +3,8 @@ import { DrizzleTestimonyRepository } from '@/infrastructure/db/repositories/Dri
 import { getTestimonies } from '@/application/testimony/GetTestimoniesUseCase'
 import { TestimoniesTable } from '@/components/TestimoniesTable'
 import { FilterTabs } from '@/components/FilterTabs'
+
+export const dynamic = 'force-dynamic'
 import { Pagination } from '@/components/Pagination'
 import { TestimonyStatus } from '@/domain/entities/Testimony'
 
