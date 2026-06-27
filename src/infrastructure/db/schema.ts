@@ -6,6 +6,9 @@ import {
 export const users = pgTable('users', {
   telegramId: bigint('telegram_id', { mode: 'number' }).primaryKey(),
   language:   text('language').notNull(),
+  firstName:  text('first_name'),
+  lastName:   text('last_name'),
+  username:   text('username'),
   createdAt:  timestamp('created_at', { withTimezone: true }).defaultNow(),
 })
 

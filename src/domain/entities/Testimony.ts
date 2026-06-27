@@ -23,6 +23,9 @@ export interface Chunk {
 export interface TestimonyListItem {
   id: string
   telegramId: number
+  firstName: string | null
+  lastName: string | null
+  username: string | null
   language: string
   createdAt: Date
   status: TestimonyStatus
@@ -31,6 +34,9 @@ export interface TestimonyListItem {
 export interface TestimonyDetail {
   id: string
   telegramId: number
+  firstName: string | null
+  lastName: string | null
+  username: string | null
   language: string
   createdAt: Date
   review: TestimonyReview

@@ -25,6 +25,9 @@ export default async function TestimonyDetailPage({ params }: Props) {
 
       <TestimonyMeta
         telegramId={detail.telegramId}
+        firstName={detail.firstName}
+        lastName={detail.lastName}
+        username={detail.username}
         language={detail.language}
         createdAt={detail.createdAt}
         review={review}

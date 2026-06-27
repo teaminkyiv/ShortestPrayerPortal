@@ -31,6 +31,9 @@ export class DrizzleTestimonyRepository implements ITestimonyRepository {
       .select({
         id:         testimonies.id,
         telegramId: testimonies.telegramId,
+        firstName:  users.firstName,
+        lastName:   users.lastName,
+        username:   users.username,
         language:   users.language,
         createdAt:  testimonies.createdAt,
         status:     testimonyReviews.status,
@@ -44,6 +47,9 @@ export class DrizzleTestimonyRepository implements ITestimonyRepository {
     return rows.map(r => ({
       id:         r.id,
       telegramId: r.telegramId,
+      firstName:  r.firstName,
+      lastName:   r.lastName,
+      username:   r.username,
       language:   r.language,
       createdAt:  r.createdAt!,
       status:     r.status as 'new' | 'summarized' | 'published',
@@ -63,6 +69,9 @@ export class DrizzleTestimonyRepository implements ITestimonyRepository {
         .select({
           id:         testimonies.id,
           telegramId: testimonies.telegramId,
+          firstName:  users.firstName,
+          lastName:   users.lastName,
+          username:   users.username,
           language:   users.language,
           createdAt:  testimonies.createdAt,
           status:     testimonyReviews.status,
@@ -84,6 +93,9 @@ export class DrizzleTestimonyRepository implements ITestimonyRepository {
       items: rows.map(r => ({
         id:         r.id,
         telegramId: r.telegramId,
+        firstName:  r.firstName,
+        lastName:   r.lastName,
+        username:   r.username,
         language:   r.language,
         createdAt:  r.createdAt!,
         status:     r.status as 'new' | 'summarized' | 'published',
@@ -99,6 +111,9 @@ export class DrizzleTestimonyRepository implements ITestimonyRepository {
       .select({
         id:           testimonies.id,
         telegramId:   testimonies.telegramId,
+        firstName:    users.firstName,
+        lastName:     users.lastName,
+        username:     users.username,
         language:     users.language,
         createdAt:    testimonies.createdAt,
         reviewId:          testimonyReviews.id,
@@ -127,6 +142,9 @@ export class DrizzleTestimonyRepository implements ITestimonyRepository {
     return {
       id:         row.id,
       telegramId: row.telegramId,
+      firstName:  row.firstName,
+      lastName:   row.lastName,
+      username:   row.username,
       language:   row.language,
       createdAt:  row.createdAt!,
       review: {
