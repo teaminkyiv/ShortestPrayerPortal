@@ -86,6 +86,7 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
           value={key}
           onChange={e => setKey(e.target.value)}
           placeholder={isSet ? 'Введите новый ключ для замены' : 'Введите API ключ'}
+          autoComplete="new-password"
           className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           aria-label={`API ключ для ${label}`}
           data-testid={`api-key-input-${provider}`}
