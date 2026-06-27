@@ -4,6 +4,20 @@
 
 **Goal:** Add a `/admin/settings` page where the admin can store AI provider API keys in the database, used as a fallback when env vars are not set.
 
+## User Stories
+
+### US-10a — Settings page
+As an admin, I can open `/admin/settings` and see forms for Anthropic and OpenAI API keys so I can configure AI without touching server env vars.
+
+### US-10b — Save / delete API key
+As an admin, I can save or delete an API key per provider. After saving I see "Key saved". After deleting the key field resets.
+
+### US-10c — Explicit API key prompt when key is missing
+As an admin, when I click "Generate Summary" and no API key is configured anywhere (neither env var nor DB), I see a clear message — **"No API key configured. Please add an API key in Settings to use AI summarization."** — with a direct clickable link to `/admin/settings`. The message must NOT say "try again" since retrying without a key will always fail.
+
+### US-10d — Env var takes priority over DB key
+As a developer, when `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` is set as an env var, it is used instead of the DB-stored key so the DB key acts purely as a fallback.
+
 **Architecture:** A new `api_keys` table in the existing Drizzle schema stores provider keys. A thin `ApiKeyRepository` wraps DB access. `AiSummaryService.generateSummary()` checks env vars first, then falls back to the repository. The settings UI is a server page + client form component, wired to three new API routes (GET/PUT/DELETE).
 
 **Tech Stack:** Next.js 15 App Router, TypeScript, Drizzle ORM, Neon PostgreSQL (neon-http driver), Tailwind CSS, `@anthropic-ai/sdk`, `openai`.
@@ -757,7 +771,8 @@ git commit -m "feat(ui): show settings link when AI key not configured (BYOK)"
 | AiSummaryPanel 422 handling with settings link | Task 9 |
 | `/admin/settings` page with forms | Task 7 |
 | `ApiKeyForm` client component | Task 6 |
-| Nav link "Настройки" | Task 8 |
+| Nav link "Settings" | Task 8 |
+| No-key error shows explicit message + link, not "try again" (US-10c) | Task 9 / AiSummaryPanel |
 
 All requirements covered.
 
