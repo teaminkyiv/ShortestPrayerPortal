@@ -50,7 +50,7 @@ export function EditPublishPanel({
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } else {
-      setError('Не удалось сохранить черновик.')
+      setError('Failed to save draft.')
     }
   }
 
@@ -65,7 +65,7 @@ export function EditPublishPanel({
     })
 
     if (!res.ok) {
-      setError('Не удалось опубликовать.')
+      setError('Failed to publish.')
       setPublishing(false)
       return
     }
@@ -80,7 +80,7 @@ export function EditPublishPanel({
 
   return (
     <section className="mb-6">
-      <h2 className="mb-2 text-lg font-semibold">Финальная версия</h2>
+      <h2 className="mb-2 text-lg font-semibold">Final version</h2>
 
       {error && (
         <div role="alert" className="mb-3 rounded bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
@@ -95,17 +95,17 @@ export function EditPublishPanel({
         disabled={isPublished}
         rows={10}
         className="w-full rounded border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-        placeholder="Введите финальную версию свидетельства..."
+        placeholder="Enter the final version of the testimony..."
       />
 
       {saved && (
-        <p className="mt-2 text-sm text-green-600">Сохранено</p>
+        <p className="mt-2 text-sm text-green-600">Saved</p>
       )}
 
       {isPublished ? (
         <div className="mt-3 text-sm text-gray-500">
-          Опубликовано: <span data-testid="published-at">{publishedAt ? new Date(publishedAt).toLocaleString('ru-RU') : ''}</span>
-          {' '}редактором <span data-testid="published-by">{publishedBy}</span>
+          Published: <span data-testid="published-at">{publishedAt ? new Date(publishedAt).toLocaleString('en-US') : ''}</span>
+          {' '}by <span data-testid="published-by">{publishedBy}</span>
         </div>
       ) : (
         <div className="mt-3 flex gap-3">
@@ -114,7 +114,7 @@ export function EditPublishPanel({
             disabled={saving || publishing}
             className="rounded border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
           >
-            {saving ? 'Сохраняем...' : 'Save draft'}
+            {saving ? 'Saving...' : 'Save draft'}
           </button>
 
           <button
@@ -122,7 +122,7 @@ export function EditPublishPanel({
             disabled={!text.trim() || publishing || saving}
             className="rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
           >
-            {publishing ? 'Публикуем...' : 'Publish'}
+            {publishing ? 'Publishing...' : 'Publish'}
           </button>
         </div>
       )}

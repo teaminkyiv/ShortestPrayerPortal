@@ -28,17 +28,17 @@ export function Pagination({ page, pageSize, total }: Props) {
         disabled={page <= 1}
         className="px-3 py-1 rounded border text-sm disabled:opacity-40"
       >
-        Предыдущая
+        Previous
       </button>
       <span className="text-sm text-gray-600">
-        Страница {page} из {totalPages}
+        Page {page} of {totalPages}
       </span>
       <button
         onClick={() => go(page + 1)}
         disabled={page >= totalPages}
         className="px-3 py-1 rounded border text-sm disabled:opacity-40"
       >
-        Следующая
+        Next
       </button>
     </div>
   )

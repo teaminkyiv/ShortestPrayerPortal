@@ -26,7 +26,7 @@ export default async function TestimoniesPage({ searchParams }: Props) {
 
   return (
     <div>
-      <h1 className="mb-4 text-2xl font-bold">Свидетельства</h1>
+      <h1 className="mb-4 text-2xl font-bold">Testimonies</h1>
       <Suspense>
         <FilterTabs />
       </Suspense>

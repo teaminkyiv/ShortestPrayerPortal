@@ -14,10 +14,10 @@ export function TestimonyMeta({ telegramId, language, createdAt, review }: Props
       <dt className="text-gray-500">Telegram ID</dt>
       <dd data-testid="meta-telegram-id" className="font-medium">{telegramId}</dd>
 
-      <dt className="text-gray-500">Язык</dt>
+      <dt className="text-gray-500">Language</dt>
       <dd data-testid="meta-language">{language}</dd>
 
-      <dt className="text-gray-500">Дата создания</dt>
+      <dt className="text-gray-500">Created at</dt>
       <dd data-testid="meta-created-at">{createdAt.toISOString()}</dd>
     </dl>
   )

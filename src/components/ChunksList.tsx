@@ -8,7 +8,7 @@ export function ChunksList({ chunks }: Props) {
   return (
     <div data-testid="chunks-list" className="space-y-2">
       {chunks.length === 0 && (
-        <p className="text-gray-400 italic">Нет сообщений</p>
+        <p className="text-gray-400 italic">No messages</p>
       )}
       {chunks.map((chunk, i) => (
         <div key={chunk.id} data-testid="chunk-item" className="rounded border bg-white p-4">

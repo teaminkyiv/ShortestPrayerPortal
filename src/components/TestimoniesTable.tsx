@@ -11,9 +11,9 @@ export function TestimoniesTable({ items }: Props) {
       <thead>
         <tr className="border-b bg-gray-50 text-left text-gray-500">
           <th className="px-4 py-2">Telegram ID</th>
-          <th className="px-4 py-2">Язык</th>
-          <th className="px-4 py-2">Дата</th>
-          <th className="px-4 py-2">Статус</th>
+          <th className="px-4 py-2">Language</th>
+          <th className="px-4 py-2">Date</th>
+          <th className="px-4 py-2">Status</th>
         </tr>
       </thead>
       <tbody>

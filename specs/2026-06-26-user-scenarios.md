@@ -315,3 +315,107 @@ Given бот отправляет POST /api/webhooks/testimony-finished
 Then возвращается HTTP 404
 And запись в testimony_reviews не создаётся
 ```
+
+---
+
+## US-10 — BYOK (Bring Your Own Key)
+
+### Scenario 10.1: Страница /admin/settings отображается
+
+```
+Given пользователь авторизован
+When он переходит на /admin/settings
+Then страница загружается без ошибок
+And отображается форма для ввода Anthropic API ключа
+And отображается форма для ввода OpenAI API ключа
+And страница доступна из навигации
+```
+
+**Acceptance Criteria:**
+- Страница защищена middleware (без авторизации → редирект на `/admin/login`)
+- Ссылка на `/admin/settings` присутствует в навигационном меню AdminLayout
+- Если ключ уже сохранён в БД — отображается маска (`sk-ant-...****`), не полное значение
+- Если ключа нет — поле пустое с placeholder-ом
+
+---
+
+### Scenario 10.2: Admin может сохранить Anthropic API ключ
+
+```
+Given пользователь на /admin/settings
+When он вводит Anthropic API ключ в соответствующее поле
+And нажимает "Сохранить"
+Then ключ сохраняется в таблицу api_keys с provider = 'anthropic'
+And форма показывает маскированный вид ключа
+And показывается уведомление "Ключ сохранён"
+```
+
+**Acceptance Criteria:**
+- PUT `/api/admin/settings/api-keys` с `{ provider: 'anthropic', keyValue: '...' }` → 200
+- Если ключ уже существует для этого провайдера — перезаписывается (upsert)
+- Поле ввода не отображает полный ключ после сохранения
+- Кнопка "Удалить ключ" появляется после сохранения
+
+```
+Given ключ Anthropic уже сохранён
+When пользователь нажимает "Удалить ключ"
+Then ключ удаляется из api_keys
+And DELETE /api/admin/settings/api-keys?provider=anthropic возвращает 200
+And форма возвращается в пустое состояние
+```
+
+---
+
+### Scenario 10.3: AI summary использует ключ из БД если env var не установлен
+
+```
+Given env vars ANTHROPIC_API_KEY и OPENAI_API_KEY не установлены
+And в таблице api_keys есть запись с provider = 'anthropic'
+When редактор нажимает "Generate Summary" на странице свидетельства
+Then AiSummaryService читает ключ из api_keys
+And запрос к Anthropic API выполняется с этим ключом
+And summary генерируется и сохраняется
+```
+
+**Acceptance Criteria:**
+- `AiSummaryService.generateSummary()` проверяет env var → БД (в таком порядке)
+- Ключ из БД используется только если соответствующий env var отсутствует или пустой
+- Если есть ключ только OpenAI в БД (Anthropic env var не задан) — используется OpenAI из БД
+
+---
+
+### Scenario 10.4: Env var имеет приоритет над ключом из БД
+
+```
+Given ANTHROPIC_API_KEY установлен в env vars
+And в таблице api_keys тоже есть запись с provider = 'anthropic' (другой ключ)
+When выполняется генерация AI summary
+Then используется ключ из env var ANTHROPIC_API_KEY
+And ключ из api_keys игнорируется
+```
+
+**Acceptance Criteria:**
+- Порядок приоритета строго: env var → БД
+- Это поведение не конфигурируется — всегда так
+
+---
+
+### Scenario 10.5: Если ключа нет нигде — показывается ошибка с ссылкой на /admin/settings
+
+```
+Given env vars ANTHROPIC_API_KEY и OPENAI_API_KEY не установлены
+And таблица api_keys пуста (нет ключей ни для одного провайдера)
+When редактор нажимает "Generate Summary"
+Then API POST /api/admin/testimonies/[id]/summarize возвращает HTTP 422
+And тело ответа содержит { "error": "no_api_key", "settingsUrl": "/admin/settings" }
+And в UI AiSummaryPanel показывается сообщение:
+    "API ключ не настроен. Перейти в настройки"
+And текст "Перейти в настройки" является ссылкой на /admin/settings
+And статус свидетельства не меняется
+```
+
+**Acceptance Criteria:**
+- Ошибка `no_api_key` отличается от общей ошибки сервера (не просто 500)
+- Ссылка `/admin/settings` в сообщении об ошибке кликабельна
+- `role="alert"` присутствует у блока ошибки (для E2E тестов)
+- AiSummaryPanel обрабатывает `error: 'no_api_key'` отдельно от других ошибок API

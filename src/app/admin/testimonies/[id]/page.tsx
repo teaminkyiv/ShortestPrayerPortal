@@ -21,7 +21,7 @@ export default async function TestimonyDetailPage({ params }: Props) {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="mb-4 text-2xl font-bold">Свидетельство</h1>
+      <h1 className="mb-4 text-2xl font-bold">Testimony</h1>
 
       <TestimonyMeta
         telegramId={detail.telegramId}
@@ -40,7 +40,7 @@ export default async function TestimonyDetailPage({ params }: Props) {
         initialPublishedBy={review.publishedBy}
       />
 
-      <h2 className="mb-2 text-lg font-semibold">Сообщения</h2>
+      <h2 className="mb-2 text-lg font-semibold">Messages</h2>
       <ChunksList chunks={detail.chunks} />
     </div>
   )

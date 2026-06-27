@@ -2566,6 +2566,445 @@ git commit -m "test: add seed script for E2E test database fixtures"
 
 ---
 
+## Task 13: BYOK — Bring Your Own Key (US-10)
+
+**Files:**
+- Modify: `src/infrastructure/db/schema.ts` — add `apiKeys` table
+- Create: `src/infrastructure/db/repositories/DrizzleApiKeyRepository.ts`
+- Create: `src/app/api/admin/settings/api-keys/route.ts` — GET / PUT / DELETE
+- Create: `src/app/admin/settings/page.tsx`
+- Create: `src/components/ApiKeyForm.tsx`
+- Modify: `src/infrastructure/ai/AiSummaryService.ts` — add DB key fallback
+- Modify: `src/app/admin/layout.tsx` — add Settings link to nav
+- Modify: `src/app/api/admin/testimonies/[id]/summarize/route.ts` — return 422 with `no_api_key`
+- Modify: `src/components/AiSummaryPanel.tsx` — handle `no_api_key` error with settings link
+
+**Interfaces:**
+- Produces: `/admin/settings` page; API routes GET/PUT/DELETE `/api/admin/settings/api-keys`; `AiSummaryService` with env var → DB key fallback; 422 `no_api_key` error handling in UI
+
+**E2E data-testid / locators this task must satisfy:**
+- `page.goto('/admin/settings')` — page loads without errors
+- `data-testid="api-key-form-anthropic"` — Anthropic key form section
+- `data-testid="api-key-form-openai"` — OpenAI key form section
+- `data-testid="api-key-input-anthropic"` — input field for Anthropic key
+- `data-testid="api-key-input-openai"` — input field for OpenAI key
+- `role="button"` name `/save/i` — save button per form
+- `role="button"` name `/удалить ключ/i` — delete button (visible only when key is saved)
+- `data-testid="api-key-saved-notice"` — "Ключ сохранён" shown after save
+- `role="alert"` containing text `/перейти в настройки/i` — shown in AiSummaryPanel when no key configured
+- `page.getByRole('link', { name: /перейти в настройки/i })` — link to `/admin/settings`
+- Nav link: `page.getByRole('link', { name: /настройки/i })` — in AdminLayout
+
+- [ ] **Step 1: Add `api_keys` table to schema**
+
+Edit `src/infrastructure/db/schema.ts` — append:
+
+```typescript
+export const apiKeys = pgTable('api_keys', {
+  id:        uuid('id').primaryKey().defaultRandom(),
+  provider:  text('provider').notNull(), // 'anthropic' | 'openai'
+  keyValue:  text('key_value').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+})
+```
+
+Add a unique constraint on `provider` so there is at most one key per provider (upsert by provider).
+
+- [ ] **Step 2: Generate and push migration**
+
+```bash
+npm run db:generate
+npm run db:push
+```
+
+Expected: `api_keys` table created in Neon. Verify in `npx drizzle-kit studio`.
+
+- [ ] **Step 3: Write DrizzleApiKeyRepository**
+
+```typescript
+// src/infrastructure/db/repositories/DrizzleApiKeyRepository.ts
+import { eq } from 'drizzle-orm'
+import { db } from '../client'
+import { apiKeys } from '../schema'
+
+export type ApiProvider = 'anthropic' | 'openai'
+
+export interface ApiKeyRecord {
+  provider: ApiProvider
+  keyValue: string
+}
+
+export class DrizzleApiKeyRepository {
+  async getKey(provider: ApiProvider): Promise<string | null> {
+    const [row] = await db
+      .select({ keyValue: apiKeys.keyValue })
+      .from(apiKeys)
+      .where(eq(apiKeys.provider, provider))
+      .limit(1)
+    return row?.keyValue ?? null
+  }
+
+  async upsertKey(provider: ApiProvider, keyValue: string): Promise<void> {
+    await db
+      .insert(apiKeys)
+      .values({ provider, keyValue })
+      .onConflictDoUpdate({
+        target: apiKeys.provider,
+        set: { keyValue, updatedAt: new Date() },
+      })
+  }
+
+  async deleteKey(provider: ApiProvider): Promise<void> {
+    await db.delete(apiKeys).where(eq(apiKeys.provider, provider))
+  }
+
+  async listProviders(): Promise<Array<{ provider: ApiProvider; maskedKey: string }>> {
+    const rows = await db.select({ provider: apiKeys.provider, keyValue: apiKeys.keyValue }).from(apiKeys)
+    return rows.map(r => ({
+      provider: r.provider as ApiProvider,
+      maskedKey: maskKey(r.keyValue),
+    }))
+  }
+}
+
+function maskKey(key: string): string {
+  if (key.length <= 8) return '****'
+  return key.slice(0, 7) + '...****'
+}
+```
+
+- [ ] **Step 4: Write API routes for api-keys**
+
+```typescript
+// src/app/api/admin/settings/api-keys/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { getTokenFromRequest, verifySession } from '@/lib/auth'
+import { DrizzleApiKeyRepository } from '@/infrastructure/db/repositories/DrizzleApiKeyRepository'
+
+async function auth(req: NextRequest) {
+  const token = getTokenFromRequest(req)
+  return token && (await verifySession(token))
+}
+
+export async function GET(req: NextRequest) {
+  if (!(await auth(req))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const repo = new DrizzleApiKeyRepository()
+  const keys = await repo.listProviders()
+  return NextResponse.json({ keys })
+}
+
+export async function PUT(req: NextRequest) {
+  if (!(await auth(req))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { provider, keyValue } = await req.json()
+  if (!['anthropic', 'openai'].includes(provider) || !keyValue?.trim()) {
+    return NextResponse.json({ error: 'Invalid provider or keyValue' }, { status: 400 })
+  }
+  const repo = new DrizzleApiKeyRepository()
+  await repo.upsertKey(provider, keyValue.trim())
+  return NextResponse.json({ ok: true })
+}
+
+export async function DELETE(req: NextRequest) {
+  if (!(await auth(req))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const provider = req.nextUrl.searchParams.get('provider')
+  if (!['anthropic', 'openai'].includes(provider ?? '')) {
+    return NextResponse.json({ error: 'Invalid provider' }, { status: 400 })
+  }
+  const repo = new DrizzleApiKeyRepository()
+  await repo.deleteKey(provider as 'anthropic' | 'openai')
+  return NextResponse.json({ ok: true })
+}
+```
+
+- [ ] **Step 5: Update AiSummaryService to fall back to DB key**
+
+Edit `src/infrastructure/ai/AiSummaryService.ts`:
+
+Priority: env var → DB key → throw error with `{ code: 'no_api_key' }`.
+
+```typescript
+import { DrizzleApiKeyRepository } from '@/infrastructure/db/repositories/DrizzleApiKeyRepository'
+
+export class NoApiKeyError extends Error {
+  code = 'no_api_key' as const
+  constructor() {
+    super('No AI provider key configured. Set ANTHROPIC_API_KEY / OPENAI_API_KEY or add a key in /admin/settings.')
+  }
+}
+
+export async function generateSummary(
+  chunkTexts: string[],
+  language: string,
+): Promise<string> {
+  const content = chunkTexts.join('\n---\n')
+  const prompt = `Summarize the following personal testimony in ${language === 'ru' ? 'Russian' : language === 'uk' ? 'Ukrainian' : 'English'} (2-4 paragraphs). Preserve the speaker's voice and key spiritual details.\n\n${content}`
+
+  // 1. Try Anthropic (env var first, then DB)
+  const anthropicKey = process.env.ANTHROPIC_API_KEY || await new DrizzleApiKeyRepository().getKey('anthropic')
+  if (anthropicKey) {
+    const { Anthropic } = await import('@anthropic-ai/sdk')
+    const client = new Anthropic({ apiKey: anthropicKey })
+    const msg = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: prompt }],
+    })
+    const block = msg.content[0]
+    if (block.type !== 'text') throw new Error('Unexpected response type from Anthropic')
+    return block.text
+  }
+
+  // 2. Try OpenAI (env var first, then DB)
+  const openaiKey = process.env.OPENAI_API_KEY || await new DrizzleApiKeyRepository().getKey('openai')
+  if (openaiKey) {
+    const { default: OpenAI } = await import('openai')
+    const client = new OpenAI({ apiKey: openaiKey })
+    const res = await client.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 1024,
+    })
+    return res.choices[0].message.content ?? ''
+  }
+
+  // 3. No key anywhere
+  throw new NoApiKeyError()
+}
+```
+
+- [ ] **Step 6: Update summarize API route to return 422 for no_api_key**
+
+Edit `src/app/api/admin/testimonies/[id]/summarize/route.ts` — in the catch block:
+
+```typescript
+  } catch (err) {
+    if (err instanceof NoApiKeyError) {
+      return NextResponse.json(
+        { error: 'no_api_key', settingsUrl: '/admin/settings' },
+        { status: 422 },
+      )
+    }
+    console.error('Summarize error:', err)
+    return NextResponse.json({ error: 'Failed to generate summary' }, { status: 500 })
+  }
+```
+
+Import `NoApiKeyError` from `@/infrastructure/ai/AiSummaryService`.
+
+- [ ] **Step 7: Update AiSummaryPanel to handle no_api_key**
+
+Edit `src/components/AiSummaryPanel.tsx` — in `handleGenerate()`:
+
+```typescript
+    const data = await res.json()
+    if (!res.ok) {
+      if (data.error === 'no_api_key') {
+        setError('no_api_key')
+      } else {
+        setError('generic')
+      }
+      setLoading(false)
+      return
+    }
+```
+
+In the JSX error block — show two different messages:
+
+```tsx
+      {error === 'no_api_key' && (
+        <div role="alert" className="mb-3 rounded bg-yellow-50 border border-yellow-300 px-4 py-2 text-sm text-yellow-800">
+          API ключ не настроен.{' '}
+          <a href="/admin/settings" className="underline font-medium">
+            Перейти в настройки
+          </a>
+        </div>
+      )}
+      {error === 'generic' && (
+        <div role="alert" className="mb-3 rounded bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+          Не удалось сгенерировать summary. Попробуйте ещё раз.
+        </div>
+      )}
+```
+
+- [ ] **Step 8: Write ApiKeyForm component**
+
+```tsx
+// src/components/ApiKeyForm.tsx
+'use client'
+
+import { useState } from 'react'
+
+interface Props {
+  provider: 'anthropic' | 'openai'
+  label: string
+  initialMasked: string | null
+}
+
+export function ApiKeyForm({ provider, label, initialMasked }: Props) {
+  const [keyInput, setKeyInput]   = useState('')
+  const [masked,   setMasked]     = useState(initialMasked)
+  const [saving,   setSaving]     = useState(false)
+  const [deleting, setDeleting]   = useState(false)
+  const [saved,    setSaved]      = useState(false)
+  const [error,    setError]      = useState<string | null>(null)
+
+  async function handleSave() {
+    if (!keyInput.trim()) return
+    setSaving(true)
+    setSaved(false)
+    setError(null)
+
+    const res = await fetch('/api/admin/settings/api-keys', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, keyValue: keyInput.trim() }),
+    })
+
+    if (res.ok) {
+      const preview = keyInput.slice(0, 7) + '...****'
+      setMasked(preview)
+      setKeyInput('')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } else {
+      setError('Не удалось сохранить ключ.')
+    }
+    setSaving(false)
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    setError(null)
+
+    const res = await fetch(`/api/admin/settings/api-keys?provider=${provider}`, {
+      method: 'DELETE',
+    })
+
+    if (res.ok) {
+      setMasked(null)
+    } else {
+      setError('Не удалось удалить ключ.')
+    }
+    setDeleting(false)
+  }
+
+  return (
+    <div data-testid={`api-key-form-${provider}`} className="rounded border bg-white p-4 mb-4">
+      <h3 className="font-medium text-sm mb-3">{label}</h3>
+
+      {masked && (
+        <p className="text-sm text-gray-500 mb-2 font-mono">{masked}</p>
+      )}
+
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="block text-xs text-gray-500 mb-1">
+            {masked ? 'Новый ключ (заменит текущий)' : 'API ключ'}
+          </label>
+          <input
+            type="password"
+            data-testid={`api-key-input-${provider}`}
+            value={keyInput}
+            onChange={e => setKeyInput(e.target.value)}
+            placeholder={masked ? '••••••••' : `Введите ${label} API ключ`}
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={!keyInput.trim() || saving}
+          className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {saving ? 'Сохраняем...' : 'Сохранить'}
+        </button>
+        {masked && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="rounded border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+          >
+            {deleting ? '...' : 'Удалить ключ'}
+          </button>
+        )}
+      </div>
+
+      {saved && (
+        <p data-testid="api-key-saved-notice" className="mt-2 text-sm text-green-600">Ключ сохранён</p>
+      )}
+      {error && (
+        <p className="mt-2 text-sm text-red-600">{error}</p>
+      )}
+    </div>
+  )
+}
+```
+
+- [ ] **Step 9: Write /admin/settings page**
+
+```tsx
+// src/app/admin/settings/page.tsx
+import { DrizzleApiKeyRepository } from '@/infrastructure/db/repositories/DrizzleApiKeyRepository'
+import { ApiKeyForm } from '@/components/ApiKeyForm'
+
+export default async function SettingsPage() {
+  const repo = new DrizzleApiKeyRepository()
+  const keys = await repo.listProviders()
+
+  const anthropicMasked = keys.find(k => k.provider === 'anthropic')?.maskedKey ?? null
+  const openaiMasked    = keys.find(k => k.provider === 'openai')?.maskedKey ?? null
+
+  return (
+    <div className="max-w-lg">
+      <h1 className="mb-6 text-2xl font-bold">Настройки</h1>
+
+      <section className="mb-6">
+        <h2 className="mb-3 text-lg font-semibold">AI API ключи</h2>
+        <p className="mb-4 text-sm text-gray-500">
+          Ключи используются для AI-суммаризации. Env vars имеют приоритет над ключами из БД.
+        </p>
+
+        <ApiKeyForm
+          provider="anthropic"
+          label="Anthropic (Claude)"
+          initialMasked={anthropicMasked}
+        />
+        <ApiKeyForm
+          provider="openai"
+          label="OpenAI (GPT-4o)"
+          initialMasked={openaiMasked}
+        />
+      </section>
+    </div>
+  )
+}
+```
+
+- [ ] **Step 10: Add Settings link to AdminLayout nav**
+
+Edit `src/app/admin/layout.tsx` — add link:
+
+```tsx
+<a href="/admin/settings" className="text-gray-600 hover:text-blue-600">Настройки</a>
+```
+
+- [ ] **Step 11: Run E2E settings tests**
+
+```bash
+npx playwright test tests/e2e/us10-settings.spec.ts --reporter=line
+```
+
+Expected: 10.1–10.5 pass.
+
+- [ ] **Step 12: Commit**
+
+```bash
+git add src/infrastructure/db/schema.ts src/infrastructure/db/repositories/DrizzleApiKeyRepository.ts src/app/api/admin/settings/ src/app/admin/settings/ src/components/ApiKeyForm.tsx src/infrastructure/ai/AiSummaryService.ts src/components/AiSummaryPanel.tsx src/app/admin/layout.tsx src/app/api/admin/testimonies/ drizzle/
+git commit -m "feat: BYOK — admin settings page, api_keys table, DB key fallback for AI (US-10)"
+```
+
+---
+
 ## Self-Review Checklist
 
 **Spec coverage:**
@@ -2579,13 +3018,16 @@ git commit -m "test: add seed script for E2E test database fixtures"
 | US-5 AI summary generate + regenerate + error toast | Task 9 |
 | US-6 Draft + publish + pre-fill + read-only | Task 10 |
 | US-9 Webhook (3 scenarios) | Task 11 |
+| US-10 BYOK — settings page, api_keys, DB key fallback, no_api_key error | Task 13 |
 | DB schema (testimony_reviews only) | Task 2 |
+| DB schema (api_keys — new table for BYOK) | Task 13 Step 1–2 |
 | Clean Architecture layers | Tasks 3, 4 |
 | AI provider selection (Anthropic / OpenAI) | Task 4 |
+| AI provider key priority: env var → DB → error | Task 13 Step 5 |
 | Cookie flags (httpOnly, secure, sameSite=strict, 7d) | Task 5 |
 | URL query params for filter + page | Task 7 |
-| data-testid attributes matching E2E tests | Tasks 6–11 |
-| Button/role text matching E2E locators | Tasks 5–11 |
+| data-testid attributes matching E2E tests | Tasks 6–11, 13 |
+| Button/role text matching E2E locators | Tasks 5–11, 13 |
 | .env.test.example re-created | Task 1 |
 | Test DB seed | Task 12 |
 

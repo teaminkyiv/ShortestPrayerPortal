@@ -4,8 +4,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="bg-white border-b px-6 py-3">
         <nav className="flex gap-4 text-sm">
           <a href="/admin" className="font-semibold text-gray-700 hover:text-blue-600">Dashboard</a>
-          <a href="/admin/testimonies" className="text-gray-600 hover:text-blue-600">Свидетельства</a>
-          <a href="/admin/settings" className="text-gray-600 hover:text-blue-600">Настройки</a>
+          <a href="/admin/testimonies" className="text-gray-600 hover:text-blue-600">Testimonies</a>
+          <a href="/admin/settings" className="text-gray-600 hover:text-blue-600">Settings</a>
         </nav>
       </header>
       <main className="p-6">{children}</main>

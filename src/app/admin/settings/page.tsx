@@ -12,14 +12,14 @@ export default async function SettingsPage() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="mb-6 text-2xl font-bold">Настройки</h1>
+      <h1 className="mb-6 text-2xl font-bold">Settings</h1>
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-700">AI API ключи</h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-700">AI API Keys</h2>
         <p className="mb-4 text-sm text-gray-500">
-          Если установлена переменная среды <code className="rounded bg-gray-100 px-1">ANTHROPIC_API_KEY</code> или{' '}
-          <code className="rounded bg-gray-100 px-1">OPENAI_API_KEY</code>, она используется в приоритете.
-          Ключи ниже применяются только как запасной вариант.
+          If the environment variable <code className="rounded bg-gray-100 px-1">ANTHROPIC_API_KEY</code> or{' '}
+          <code className="rounded bg-gray-100 px-1">OPENAI_API_KEY</code> is set, it takes priority.
+          Keys below are used only as a fallback.
         </p>
         <ApiKeyForm
           initialAnthropicSet={!!anthropicKey}

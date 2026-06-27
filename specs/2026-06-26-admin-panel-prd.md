@@ -273,6 +273,66 @@ src/
 
 ---
 
+### BYOK — Bring Your Own Key для AI провайдеров
+
+**US-10: Настройка API ключей через интерфейс администратора**
+
+Как администратор, я хочу иметь возможность ввести API ключ AI-провайдера через веб-интерфейс, чтобы AI-суммаризация работала на проде (Vercel) без необходимости добавлять секреты напрямую в настройки хостинга.
+
+**Проблема:** На Vercel env vars (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) могут отсутствовать. Вместо полного отказа AI-суммаризации — предоставить UI для ввода ключей с сохранением в БД.
+
+**Приоритет источника ключа (от высшего к низшему):**
+1. Env var (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY`) — всегда имеет приоритет
+2. Ключ из таблицы `api_keys` в БД
+3. Если нигде нет — вернуть понятную ошибку с ссылкой на `/admin/settings`
+
+**Acceptance Criteria:**
+- [ ] `/admin/settings` — страница доступна для авторизованного admin (защищена тем же middleware)
+- [ ] Форма на странице позволяет ввести Anthropic API ключ и/или OpenAI API ключ
+- [ ] После сохранения ключ хранится в таблице `api_keys` (без шифрования в MVP, поле `key_value text`)
+- [ ] AI-суммаризация проверяет: сначала env var → затем `api_keys` в БД → затем ошибка
+- [ ] Если ключа нет нигде — API `/api/admin/testimonies/[id]/summarize` возвращает 422 с телом `{ "error": "no_api_key", "settingsUrl": "/admin/settings" }`
+- [ ] UI AiSummaryPanel при получении `no_api_key` показывает сообщение: "API ключ не настроен. [Перейти в настройки](/admin/settings)"
+- [ ] Сохранённый в БД ключ показывается в форме в замаскированном виде (`sk-ant-...****`)
+- [ ] Удаление ключа из БД через кнопку "Удалить ключ"
+- [ ] Страница `/admin/settings` добавляется в навигацию (`AdminLayout`)
+
+**DB Schema — новая таблица `api_keys`:**
+
+```sql
+CREATE TABLE api_keys (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  provider   TEXT NOT NULL CHECK (provider IN ('anthropic', 'openai')),
+  key_value  TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (provider)
+);
+```
+
+Drizzle-определение:
+```typescript
+export const apiKeys = pgTable('api_keys', {
+  id:        uuid('id').primaryKey().defaultRandom(),
+  provider:  text('provider').notNull(),  // 'anthropic' | 'openai'
+  keyValue:  text('key_value').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+})
+```
+
+**Новые API routes:**
+- `GET  /api/admin/settings/api-keys` — список ключей (только провайдер + маска, не полный ключ)
+- `PUT  /api/admin/settings/api-keys` — сохранить/перезаписать ключ `{ provider, keyValue }`
+- `DELETE /api/admin/settings/api-keys?provider=anthropic` — удалить ключ
+
+**Новые страницы/компоненты:**
+- `src/app/admin/settings/page.tsx` — страница настроек
+- `src/components/ApiKeyForm.tsx` — форма ввода ключей
+- `src/infrastructure/db/repositories/IApiKeyRepository.ts` + `DrizzleApiKeyRepository.ts`
+
+---
+
 ## Страницы и навигация
 
 ```
@@ -280,6 +340,7 @@ src/
 /admin                          — Dashboard
 /admin/testimonies              — список всех свидетельств
 /admin/testimonies/[id]         — детальная страница
+/admin/settings                 — настройки (API ключи для AI)
 ```
 
 ---

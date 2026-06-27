@@ -1,0 +1,2 @@
+[     884ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ https://shortest-prayer-portal.vercel.app/admin/login:0
+[    5265ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://shortest-prayer-portal.vercel.app/api/admin/login:0

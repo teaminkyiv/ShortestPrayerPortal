@@ -19,7 +19,7 @@ export default async function DashboardPage() {
         <StatusCounter label="published"  count={counts.published} />
       </div>
 
-      <h2 className="mb-3 text-lg font-semibold">Последние свидетельства</h2>
+      <h2 className="mb-3 text-lg font-semibold">Recent testimonies</h2>
       <TestimoniesTable items={recent} />
     </div>
   )

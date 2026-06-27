@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const { password } = body as { password?: string }
 
   if (password !== process.env.ADMIN_PANEL_PASSWORD) {
-    return NextResponse.json({ error: 'Неверный пароль' }, { status: 401 })
+    return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
   }
 
   const token = await createSession()

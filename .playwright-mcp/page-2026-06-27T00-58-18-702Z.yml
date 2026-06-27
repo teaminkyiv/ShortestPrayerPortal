@@ -1,0 +1,39 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - navigation [ref=e4]:
+      - link "Dashboard" [ref=e5] [cursor=pointer]:
+        - /url: /admin
+      - link "Свидетельства" [ref=e6] [cursor=pointer]:
+        - /url: /admin/testimonies
+      - link "Настройки" [ref=e7] [cursor=pointer]:
+        - /url: /admin/settings
+  - main [ref=e8]:
+    - generic [ref=e9]:
+      - heading "Настройки" [level=1] [ref=e10]
+      - generic [ref=e11]:
+        - heading "AI API ключи" [level=2] [ref=e12]
+        - paragraph [ref=e13]:
+          - text: Если установлена переменная среды
+          - code [ref=e14]: ANTHROPIC_API_KEY
+          - text: или
+          - code [ref=e15]: OPENAI_API_KEY
+          - text: ", она используется в приоритете. Ключи ниже применяются только как запасной вариант."
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]:
+              - heading "Anthropic (Claude)" [level=3] [ref=e19]
+              - generic [ref=e20]: ✓ Ключ установлен
+            - generic [ref=e21]:
+              - textbox "API ключ для Anthropic (Claude)" [ref=e22]:
+                - /placeholder: Введите новый ключ для замены
+              - button "Сохранить" [disabled] [ref=e23]
+              - button "Удалить ключ" [ref=e24] [cursor=pointer]
+          - generic [ref=e25]:
+            - generic [ref=e26]:
+              - heading "OpenAI (GPT-4o)" [level=3] [ref=e27]
+              - generic [ref=e28]: ✓ Ключ установлен
+            - generic [ref=e29]:
+              - textbox "API ключ для OpenAI (GPT-4o)" [ref=e30]:
+                - /placeholder: Введите новый ключ для замены
+              - button "Сохранить" [disabled] [ref=e31]
+              - button "Удалить ключ" [ref=e32] [cursor=pointer]

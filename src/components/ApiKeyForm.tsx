@@ -30,10 +30,10 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
       })
       if (!res.ok) throw new Error('Failed to save')
       setKey('')
-      setMessage({ type: 'success', text: 'Ключ сохранён' })
+      setMessage({ type: 'success', text: 'Key saved' })
       onSaved(provider)
     } catch {
-      setMessage({ type: 'error', text: 'Ошибка при сохранении' })
+      setMessage({ type: 'error', text: 'Failed to save' })
     } finally {
       setSaving(false)
     }
@@ -47,10 +47,10 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
         method: 'DELETE',
       })
       if (!res.ok) throw new Error('Failed to delete')
-      setMessage({ type: 'success', text: 'Ключ удалён' })
+      setMessage({ type: 'success', text: 'Key deleted' })
       onDeleted(provider)
     } catch {
-      setMessage({ type: 'error', text: 'Ошибка при удалении' })
+      setMessage({ type: 'error', text: 'Failed to delete' })
     } finally {
       setDeleting(false)
     }
@@ -61,8 +61,8 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
       <div className="mb-3 flex items-center gap-2">
         <h3 className="font-semibold text-gray-800">{label}</h3>
         {isSet
-          ? <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">✓ Ключ установлен</span>
-          : <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Не установлен</span>
+          ? <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">✓ Key set</span>
+          : <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Not set</span>
         }
       </div>
 
@@ -85,10 +85,10 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
           type="password"
           value={key}
           onChange={e => setKey(e.target.value)}
-          placeholder={isSet ? 'Введите новый ключ для замены' : 'Введите API ключ'}
+          placeholder={isSet ? 'Enter new key to replace' : 'Enter API key'}
           autoComplete="new-password"
           className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label={`API ключ для ${label}`}
+          aria-label={`API key for ${label}`}
           data-testid={`api-key-input-${provider}`}
         />
         <button
@@ -96,7 +96,7 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
           disabled={saving || !key.trim()}
           className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {saving ? 'Сохранение…' : 'Сохранить'}
+          {saving ? 'Saving…' : 'Save'}
         </button>
         {isSet && (
           <button
@@ -104,7 +104,7 @@ function ProviderRow({ provider, label, isSet, onSaved, onDeleted }: ProviderRow
             disabled={deleting}
             className="rounded border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
           >
-            {deleting ? 'Удаление…' : 'Удалить ключ'}
+            {deleting ? 'Deleting…' : 'Delete key'}
           </button>
         )}
       </div>

@@ -1,0 +1,171 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation [ref=e4]:
+        - link "Dashboard" [ref=e5] [cursor=pointer]:
+          - /url: /admin
+        - link "Свидетельства" [ref=e6] [cursor=pointer]:
+          - /url: /admin/testimonies
+    - main [ref=e7]:
+      - generic [ref=e14]:
+        - heading "Dashboard" [level=1] [ref=e15]
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - paragraph [ref=e18]: new
+            - paragraph [ref=e19]: "19"
+          - generic [ref=e20]:
+            - paragraph [ref=e21]: summarized
+            - paragraph [ref=e22]: "6"
+          - generic [ref=e23]:
+            - paragraph [ref=e24]: published
+            - paragraph [ref=e25]: "3"
+        - heading "Последние свидетельства" [level=2] [ref=e26]
+        - table [ref=e27]:
+          - rowgroup [ref=e28]:
+            - row "Telegram ID Язык Дата Статус" [ref=e29]:
+              - columnheader "Telegram ID" [ref=e30]
+              - columnheader "Язык" [ref=e31]
+              - columnheader "Дата" [ref=e32]
+              - columnheader "Статус" [ref=e33]
+          - rowgroup [ref=e34]:
+            - row "999000001 en 2026-06-26T21:09:16.678Z published" [ref=e35]:
+              - cell "999000001" [ref=e36]:
+                - link "999000001" [ref=e37] [cursor=pointer]:
+                  - /url: /admin/testimonies/4d194347-d29a-430d-a7b6-984990a8a214
+              - cell "en" [ref=e38]
+              - cell "2026-06-26T21:09:16.678Z" [ref=e39]
+              - cell "published" [ref=e40]
+            - row "999000001 en 2026-06-26T21:09:16.267Z summarized" [ref=e41]:
+              - cell "999000001" [ref=e42]:
+                - link "999000001" [ref=e43] [cursor=pointer]:
+                  - /url: /admin/testimonies/d6c01a07-ffd5-42a8-a9d0-6736f6b119a6
+              - cell "en" [ref=e44]
+              - cell "2026-06-26T21:09:16.267Z" [ref=e45]
+              - cell "summarized" [ref=e46]
+            - row "999000001 en 2026-06-26T21:09:16.008Z summarized" [ref=e47]:
+              - cell "999000001" [ref=e48]:
+                - link "999000001" [ref=e49] [cursor=pointer]:
+                  - /url: /admin/testimonies/4ca6fa95-6ed3-45ae-8756-0e331e294c23
+              - cell "en" [ref=e50]
+              - cell "2026-06-26T21:09:16.008Z" [ref=e51]
+              - cell "summarized" [ref=e52]
+            - row "999000001 en 2026-06-26T21:09:15.751Z summarized" [ref=e53]:
+              - cell "999000001" [ref=e54]:
+                - link "999000001" [ref=e55] [cursor=pointer]:
+                  - /url: /admin/testimonies/b505756e-e033-48a4-8731-242e1d5a978b
+              - cell "en" [ref=e56]
+              - cell "2026-06-26T21:09:15.751Z" [ref=e57]
+              - cell "summarized" [ref=e58]
+            - row "999000001 en 2026-06-26T21:09:15.489Z new" [ref=e59]:
+              - cell "999000001" [ref=e60]:
+                - link "999000001" [ref=e61] [cursor=pointer]:
+                  - /url: /admin/testimonies/b0c232ed-dab7-40e1-be26-6d65a8b6a805
+              - cell "en" [ref=e62]
+              - cell "2026-06-26T21:09:15.489Z" [ref=e63]
+              - cell "new" [ref=e64]
+            - row "999000001 en 2026-06-26T21:09:15.126Z new" [ref=e65]:
+              - cell "999000001" [ref=e66]:
+                - link "999000001" [ref=e67] [cursor=pointer]:
+                  - /url: /admin/testimonies/145d17d0-acfb-4672-8fad-3bc645f61c08
+              - cell "en" [ref=e68]
+              - cell "2026-06-26T21:09:15.126Z" [ref=e69]
+              - cell "new" [ref=e70]
+            - row "465173856 en 2026-06-26T19:19:07.515Z new" [ref=e71]:
+              - cell "465173856" [ref=e72]:
+                - link "465173856" [ref=e73] [cursor=pointer]:
+                  - /url: /admin/testimonies/f10332ba-92a8-4409-bd8e-3de4dde8ac0a
+              - cell "en" [ref=e74]
+              - cell "2026-06-26T19:19:07.515Z" [ref=e75]
+              - cell "new" [ref=e76]
+            - row "465173856 en 2026-06-26T19:19:07.410Z new" [ref=e77]:
+              - cell "465173856" [ref=e78]:
+                - link "465173856" [ref=e79] [cursor=pointer]:
+                  - /url: /admin/testimonies/e3afb6bc-ad7e-4210-9537-1cb98f962a91
+              - cell "en" [ref=e80]
+              - cell "2026-06-26T19:19:07.410Z" [ref=e81]
+              - cell "new" [ref=e82]
+            - row "465173856 en 2026-06-26T19:19:07.310Z new" [ref=e83]:
+              - cell "465173856" [ref=e84]:
+                - link "465173856" [ref=e85] [cursor=pointer]:
+                  - /url: /admin/testimonies/93cdd6f2-37b9-4c2f-9a94-6b23bf2aa882
+              - cell "en" [ref=e86]
+              - cell "2026-06-26T19:19:07.310Z" [ref=e87]
+              - cell "new" [ref=e88]
+            - row "465173856 en 2026-06-26T19:19:07.208Z new" [ref=e89]:
+              - cell "465173856" [ref=e90]:
+                - link "465173856" [ref=e91] [cursor=pointer]:
+                  - /url: /admin/testimonies/d571e39f-2844-4028-b887-df5e39ab2133
+              - cell "en" [ref=e92]
+              - cell "2026-06-26T19:19:07.208Z" [ref=e93]
+              - cell "new" [ref=e94]
+            - row "465173856 en 2026-06-26T19:19:07.104Z new" [ref=e95]:
+              - cell "465173856" [ref=e96]:
+                - link "465173856" [ref=e97] [cursor=pointer]:
+                  - /url: /admin/testimonies/fa79079c-c4c6-42fd-9072-73fd1019e92d
+              - cell "en" [ref=e98]
+              - cell "2026-06-26T19:19:07.104Z" [ref=e99]
+              - cell "new" [ref=e100]
+            - row "465173856 en 2026-06-26T19:19:06.975Z new" [ref=e101]:
+              - cell "465173856" [ref=e102]:
+                - link "465173856" [ref=e103] [cursor=pointer]:
+                  - /url: /admin/testimonies/d6048be7-ab63-4a3c-b3c1-78a81a10e4d0
+              - cell "en" [ref=e104]
+              - cell "2026-06-26T19:19:06.975Z" [ref=e105]
+              - cell "new" [ref=e106]
+            - row "465173856 en 2026-06-26T19:19:06.875Z new" [ref=e107]:
+              - cell "465173856" [ref=e108]:
+                - link "465173856" [ref=e109] [cursor=pointer]:
+                  - /url: /admin/testimonies/f36b524f-e4d4-4727-abe7-0b082af91655
+              - cell "en" [ref=e110]
+              - cell "2026-06-26T19:19:06.875Z" [ref=e111]
+              - cell "new" [ref=e112]
+            - row "465173856 en 2026-06-26T19:19:06.770Z new" [ref=e113]:
+              - cell "465173856" [ref=e114]:
+                - link "465173856" [ref=e115] [cursor=pointer]:
+                  - /url: /admin/testimonies/2f9155bb-7ef9-4518-bf01-ce1abb20cf3a
+              - cell "en" [ref=e116]
+              - cell "2026-06-26T19:19:06.770Z" [ref=e117]
+              - cell "new" [ref=e118]
+            - row "465173856 en 2026-06-26T19:19:06.670Z new" [ref=e119]:
+              - cell "465173856" [ref=e120]:
+                - link "465173856" [ref=e121] [cursor=pointer]:
+                  - /url: /admin/testimonies/6339b1d0-cc3e-4fb7-bbde-bc974348a7f3
+              - cell "en" [ref=e122]
+              - cell "2026-06-26T19:19:06.670Z" [ref=e123]
+              - cell "new" [ref=e124]
+            - row "465173856 en 2026-06-26T19:19:06.570Z new" [ref=e125]:
+              - cell "465173856" [ref=e126]:
+                - link "465173856" [ref=e127] [cursor=pointer]:
+                  - /url: /admin/testimonies/98ae7899-f085-4c72-9fa6-15c58bd08d44
+              - cell "en" [ref=e128]
+              - cell "2026-06-26T19:19:06.570Z" [ref=e129]
+              - cell "new" [ref=e130]
+            - row "465173856 en 2026-06-26T19:19:06.467Z new" [ref=e131]:
+              - cell "465173856" [ref=e132]:
+                - link "465173856" [ref=e133] [cursor=pointer]:
+                  - /url: /admin/testimonies/f7eef647-febe-48d8-b505-94ea87603504
+              - cell "en" [ref=e134]
+              - cell "2026-06-26T19:19:06.467Z" [ref=e135]
+              - cell "new" [ref=e136]
+            - row "465173856 en 2026-06-26T19:19:06.364Z new" [ref=e137]:
+              - cell "465173856" [ref=e138]:
+                - link "465173856" [ref=e139] [cursor=pointer]:
+                  - /url: /admin/testimonies/8af5fc1e-7dd3-4667-a2a5-077d51a77e19
+              - cell "en" [ref=e140]
+              - cell "2026-06-26T19:19:06.364Z" [ref=e141]
+              - cell "new" [ref=e142]
+            - row "465173856 en 2026-06-26T19:19:06.259Z new" [ref=e143]:
+              - cell "465173856" [ref=e144]:
+                - link "465173856" [ref=e145] [cursor=pointer]:
+                  - /url: /admin/testimonies/2d170265-5276-4d50-b7ac-8b54e76b4934
+              - cell "en" [ref=e146]
+              - cell "2026-06-26T19:19:06.259Z" [ref=e147]
+              - cell "new" [ref=e148]
+            - row "465173856 en 2026-06-26T19:19:06.154Z new" [ref=e149]:
+              - cell "465173856" [ref=e150]:
+                - link "465173856" [ref=e151] [cursor=pointer]:
+                  - /url: /admin/testimonies/0061d010-536d-406e-9216-923af883d232
+              - cell "en" [ref=e152]
+              - cell "2026-06-26T19:19:06.154Z" [ref=e153]
+              - cell "new" [ref=e154]
+  - alert [ref=e155]
