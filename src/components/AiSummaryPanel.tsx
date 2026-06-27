@@ -24,7 +24,7 @@ export function AiSummaryPanel({
   const [status,       setStatus]       = useState(initialStatus)
   const [summarizedAt, setSummarizedAt] = useState(initialSummarizedAt)
   const [loading,      setLoading]      = useState(false)
-  const [error,        setError]        = useState<string | null>(null)
+  const [error,        setError]        = useState<'no_api_key' | 'failed' | null>(null)
 
   const hasSummary  = !!summary
   // Use externalStatus if provided (allows parent to sync publish state)
@@ -42,14 +42,14 @@ export function AiSummaryPanel({
     if (res.status === 422) {
       const data = await res.json()
       if (data.error === 'no_api_key') {
-        setError('API key not configured. Go to settings to add a key.')
+        setError('no_api_key')
         setLoading(false)
         return
       }
     }
 
     if (!res.ok) {
-      setError('Failed to generate summary. Please try again.')
+      setError('failed')
       setLoading(false)
       return
     }
@@ -74,15 +74,16 @@ export function AiSummaryPanel({
 
       {error && (
         <div role="alert" aria-live="assertive" aria-atomic="true" className="mb-3 rounded bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
-          {error.includes('API key not configured') ? (
+          {error === 'no_api_key' ? (
             <>
-              API key not configured.{' '}
+              No API key configured. Please{' '}
               <a href="/admin/settings" className="underline hover:text-red-900">
-                Go to settings
+                add an API key in Settings
               </a>
+              {' '}to use AI summarization.
             </>
           ) : (
-            error
+            'Failed to generate summary. Please try again.'
           )}
         </div>
       )}
