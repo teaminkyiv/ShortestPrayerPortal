@@ -1,9 +1,19 @@
+import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import {
   getApiKey, setApiKey, deleteApiKey,
 } from '@/infrastructure/db/repositories/ApiKeyRepository'
 
+async function requireAuth(): Promise<NextResponse | null> {
+  const { userId } = await auth()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  return null
+}
+
 export async function GET() {
+  const denied = await requireAuth()
+  if (denied) return denied
+
   const [anthropic, openai] = await Promise.all([
     getApiKey('anthropic'),
     getApiKey('openai'),
@@ -21,6 +31,9 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
+  const denied = await requireAuth()
+  if (denied) return denied
+
   const body = await req.json() as { provider?: string; keyValue?: string }
   if (!body.provider || !body.keyValue) {
     return NextResponse.json({ error: 'provider and keyValue are required' }, { status: 400 })
@@ -34,6 +47,9 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const denied = await requireAuth()
+  if (denied) return denied
+
   const provider = req.nextUrl.searchParams.get('provider')
   if (provider !== 'anthropic' && provider !== 'openai') {
     return NextResponse.json({ error: 'provider must be anthropic or openai' }, { status: 400 })
