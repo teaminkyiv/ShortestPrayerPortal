@@ -10,7 +10,9 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "seed:test": "npx tsx scripts/seed-test-db.ts"
+    "seed:test": "npx tsx scripts/seed-test-db.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:prod": "dotenv -e .env.test.production -e .env.local -- playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "latest",

@@ -27,3 +27,4 @@ dist/
 test-results/
 tsconfig.tsbuildinfo
 .env*
+.env.test.production
