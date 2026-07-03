@@ -1,19 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getTokenFromRequest, verifySession } from '@/lib/auth'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl
+const isAdminRoute = createRouteMatcher(['/admin(.*)', '/api/admin(.*)'])
 
-  if (pathname === '/admin/login') return NextResponse.next()
-
-  const token = getTokenFromRequest(req)
-  if (!token || !(await verifySession(token))) {
-    return NextResponse.redirect(new URL('/admin/login', req.url))
+export default clerkMiddleware(async (auth, req) => {
+  if (isAdminRoute(req)) {
+    await auth.protect()
   }
-
-  return NextResponse.next()
-}
+})
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+    '/__clerk/:path*',
+  ],
 }

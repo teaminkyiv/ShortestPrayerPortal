@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "latest",
+    "@clerk/nextjs": "^7.5.12",
     "@neondatabase/serverless": "latest",
     "dotenv": "latest",
     "drizzle-kit": "latest",
