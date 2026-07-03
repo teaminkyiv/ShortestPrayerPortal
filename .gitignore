@@ -23,3 +23,7 @@ dist/
 .superpowers/
 .vercel
 .playwright-auth.json
+.playwright-mcp/
+test-results/
+tsconfig.tsbuildinfo
+.env*
